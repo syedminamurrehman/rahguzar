@@ -1,0 +1,31 @@
+{
+  "name": "Rahguzar ",
+  "short_name": "Rahguzar",
+  "description": "RahGuzar – Karachi’s Lifestyle, Transit & Inspiration Hub.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "id": "/",
+  "icons": [
+    {
+      "src": "/images/bus1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/bus1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["Transit", "Creativity", "karachi", "PWA"],
+  "lang": "en",
+  "dir": "ltr",
+  "related_applications": [],
+  "prefer_related_applications": false
+}
