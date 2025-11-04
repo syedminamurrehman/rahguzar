@@ -1,368 +1,260 @@
-
 "use client";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Modal from "./modal";
+import { routes } from "../data/routes";
 
 interface Route {
-    type: string;
-    fare?: number;
-    number: string;
-    details: string;
-    stops: string[];
+  type: string;
+  fare?: number;
+  number: string;
+  details: string;
+  stops: string[];
 }
 
 const iconMapping: Record<string, string> = {
-    "brts": "/images/peoplebus.png",
-    "people-bus": "/images/peoplebus.png",
-    "local-bus": "/images/bus.png",
-    "chinchi": "/images/tuk-tuk.png",
+  "brts": "/images/peoplebus.png",
+  "people-bus": "/images/pbus.png",
+  "local-bus": "/images/bus1.png",
+  "chinchi": "/images/tuk.png",
+  "EV-bus": "/images/ebus.png",
 };
 
-const routes = [
-
-    { type: "brts",fare:55, number: "Green line BRT",           details: "Abdullah chock to numaish", stops: ["Abdullah Chowk Station", "KDA Flats Station", "Karimi Chowrangi Station","Surjani Chowrangi (4K) Station","2 Minute Chowrangi Station","Road 2400 (Aisha Complex) Station","Power House Chowrangi Station","Road 4200 (Saleem Centre) Station","U.P. More Station","Nagan Chowrangi Station","Erum Shopping Mall (Shadman No.2) Station","Jummah Bazaar (Bayani Center) Station","Five Star Chowrangi Station","Hyderi Station","Board Office Station ","Annu Bhai Park Station","Enquiry Office Station","Nazimabad No.1 Station","Sanitary Market (Gulbahar) Station","Lasbela Chowk Station","Patel Para (Guru Mandir) Station","Numaish Station","Sea Breeze Station (Under Construction)","Gul Plaza Station (Under Construction)","Shownu Point Station (Under Construction)","Municipal Park Station (Under Construction)","Jama Cloth Station (Under Construction)","Civil Hospital Station (Under Construction)","Light House Station (Under Construction)","Tower A Station (Under Construction)","Tower B Station (Under Construction)"] },
-    { type: "brts",fare:25, number: "Orange line BRT",          details: "board office to nadra office orangi town", stops: ["BOARD OFFICE", "ABDULLAH COLLEGE", "POLICE STATION - (orangi town)","NADRA CENTER - (orangi town)"] },
-    
-    
-    
-    { type: "people-bus", number: "R-1",fare: 80,                details: "Route from Model colony to Dock yard ", stops: ["MODEL COLONY", "SECURITY PRESS", "MALIR HALT","WIRELESS GATE BUS STOP","CHOTA GATE","SHAH FAISAL COLONY GATE","NATA KHAN","DRIGH ROAD","PAF BASE FAISAL","KARSAZ","PAF MUSEUM","AWAMI MARKAZ","BALOCH COLONY","FINE HOUSE","LAAL KOTHI","NURSERY","FTC BUILDING","AISHA BAWANI COLLEGE","REGENT PLAZA (SIUT)","ARTS COUNCIL OF PAKISTAN, KARACHI","SHAHEEN COMPLEX","CITY RAILWAY","I.I. CHUNDRIGAR","TOWER","DOCKYARD"] },
-    { type: "people-bus", number: "R-2",fare: 80,                details: "Route from  Power House to Indus hospital -Korangi", stops: ["POWER HOUSE CHOWRANGI","ROAD 4200 SALEEM CENTER","UP MORE","NAGAN CHOWRANGI","SHAFIQ MOR","SOHRAB GOTH","SAGHEER GATE - FB AREA","LUCKY ONE MALL","IMTIAZ MEGA STORE (GULSHAN)","GULSHAN CHOWRANGI","NIPA CHOWRANGI","ALADIN PARK","JOHAR MOR","MILLINIUM MALL","ARMY PUBLIC SCHOOL","DRIGH ROAD","SHAH FAOSAL COLONY 2","SINGER CHOWRANGI","KHADDI STOP","SECTOR 36 LANDHI","SECTOR 35 LANDHI","SECTOR 33 LANDHI","SECTOR 32 LANDHI","GULZAR COLONY","NASIR JUMP","DISTRICT COURT-KORANGI","INDUS HOSPITAL-KORANGI"] },
-    { type: "people-bus", number: "R-3",fare: 80,                details: "Route from POWER HOUSE to NASIR JUMP", stops: ["CSD SUPER MARKET", "POWER HOUSE CHOWRANGI", "ROAD 4200-SALEEM CENTER","UP MOR","NAGAN CHOWRANGI","ERUM SHOPPING","SAKHI HASANCHOANGI","JUMMAH BAZAAR","5 STAR CHORANGI","HYDERI MARKET","KDA CHOWRANGI","BOARD OFFICE","NAZIMABAD NO 7","NAZIMABAD NO 6","NAZIMABAD PETROL PUMP","LIAQUATABAD NO 10-LALUKHET","ESSA NAGRI","HASAN SQUARE","NATIONAL STADIUM","MARITIME MUSEUM","KDA SCHEME 1","PAF MUSEUM","AWAMI MARKAZ","BALOCH COLONY","FINE HOUSE","LAAL KOTHI","NURSERY", "KALA PUL","NMC HOSPITAL","SUNSET BOULEVARD","KPT INTERCHANGE","IMTIAZ STORE KPT INTER CHANGE","BROOKES CHOWRANGI","SOORTY FACTORY","SHAAN CHOWRANGI","NASIR JUMP"] },
-    { type: "people-bus", number: "R-4",fare: 80,                details: "Route from Power House to Keamari ", stops: ["Power House", "UP Mor", "Nagan Chowrangi", "Shafiq Mor", "Sohrab Goth", "Water Pump", "Ayesha Manzil", "Karimabad" , "Liaqautabad 10", "Laloo Khait", "Teen Hati", "Jehangir Road", "Numaish", "Mobile Market", "Urdu Bazar", "Civil Hospital", "City Court", "Light House", "Bolton Market", "Tower"," Keamari"] },
-    { type: "people-bus", number: "R-8",fare: 80,                details: "Route from Yousuf Goth to Tower", stops: ["Yousuf Goth"," Naval Colony", "Baldia", "Sher Shah", "Gulbai", "Agra Taj Colony", "Daryabad", "Jinnah Brige", "Tower"] },
-    { type: "people-bus", number: "R-9",fare: 80,                details: "Route from Gulshan-e-Hadeed to tower", stops: ["Gulsahan e Hadeed", "Salah Uddin Ayubi Road", "Allah Wali Chowrangi", "National Highway 5", "Steel Mill More", "Port Bin Qasim More", "Razzakabad", "Abdullah Goth", "Chowkundi More", "Fast University", "Bhains Colony More", "Manzil Pump", "Quaidabad", "Murghi Khana", "Prince Aly Boys School", "Nadra Center Malir", "Malir Session Court", "Malir 15", "Kalaboard", "Malir Halt", "Colony Gate", "Nata Khan Bridge", "Drigh Road Station", "PAF Base Faisal", "Laal Kothi", "Karsaz", "Nursery", "FTC", "Regent Plaza", "Metropole", "Fawwara Chowk", "Arts Council", "Shaheen Complex", "I.I.Chundrigar" ," Tower"] },
-    { type: "people-bus", number: "R-10",fare: 80,               details: "Route from Numaish to Ibrahim Hyderi", stops: ["Numaish Chowrangi", "Mobile Market", "Metropole", "Frere Hall", "Teen Talwar", "Do Talwar","Abdullah Shah Ghazi", "Dolmen Mall", "Clock Tower DHA", "26 Street", "Masjid-e-Ayesha", "Rahat Park"," KPT Inter change", "Korangi Crossing"," CBM University"," Parco", "Ibrahim Hyderi"] },
-    { type: "people-bus", number: "R-11",fare: 80,               details: "Route from Miran nakka to Shireen Jinnah University", stops: ["Miran Nakka", "Gulistan Colony", "Bihar Colony", "Agra Taj", "Daryabad", "Jinnah Brige", "Bahria Complex", "M.T.Khan Road", "PICD", "Submarine Chowk", "Bahria Complex 3", "Khadda Market", "Abdullah Shah Ghazi", "Bilawal Chowrangi", "Ziauddin Hospital", "Shireen Jinnah Colony"] },
-    { type: "people-bus", number: "R-12",fare: 80,               details: "Route from Naddi kinara to Lucky star", stops: ["Naddi Kinara"," Khokhrapar"," Saudabad Chowrangi"," RCD Ground", "Kalaboard"," Malir 15", "Malir Mandir", "Malir Session  Court", "Murghi Khana", "Quaidabad", "Dawood Chowrangi"," Babar Market", "Landhi Road", "Nasir Jump", "Indus Hospital", "Korangi Crossing", "Qayyumabad", "Defence Mor", "National Medical Center", "Gora Qabristan", "FTC", "Jutt Land", "Lines Area"," Army Public School", "Lucky Star Saddar"] },
-    { type: "people-bus", number: "R-13",fare: 80,               details: "Route from Hawksway to Tower", stops: ["Hawksbay", "Mauripur", "Gulbai"," Agra Taj"," Daryabad"," Jinnah Brige"," Tower" ] },
-    { type: "people-bus", number: "EV-1",fare: 80,               details: "Route from Malir to Dolmen mall Clifton", stops: ["CMH Malir Cantt", "Tank Chowk", "Model Colony Mor", "Jinnah Ave", "Airport"," Colony Gate"," Nata Khan Bridge"," Drigh Road Station", "PAF Base Faisal", "Laal Kothi", "Karsaz", "Nursery", "FTC", "Korangi Road", "DHA Phase 1", "Masjid e Ayesha", "Clock Tower DHA", "Dolmen Mall Clifton"] },
-    { type: "people-bus", number: "EV-2",fare: 80,               details: "Route from Bahria Town to Malir Halt", stops: ["Bahria Town", "Dumba Goth"," Toll Plaza"," Baqai University"," Malir Cantt Gate 5", "Malir Cantt Gate 6", "Tank Chowk"," Model Mor", "Jinnah Ave", "Malir Halt"] },
-    { type: "people-bus", number: "EV-3",fare: 80,               details: "Route from Malir Cantt. checkpost 5 to numaish", stops: ["Malir Cantt Check Post 5", "Rim Jhim Tower"," Safoora Chowrangi"," Mausamiyat Chowrangi"," Kamran Chowrangi", "Darul Sehat Hospital", "Johar Chowrangi", "Johar Mor", "Millennium Mall"," Dalmia Road"," Bahria University"," National Stadium"," Aga Khan Hospital"," Liaquat National Hospital", "PIB Colony"," Jail Chowrangi", "Dawood Engineering University"," Islamia College"," People Secretariat Chowrangi", "Numaish"] },
-    { type: "people-bus", number: "EV-4",fare: 80,               details: "Route from Bahria town to Ayesha Manzil", stops: ["Bahria Town", "Dumba Goth"," M9 Toll Plaza", "Jamali Pull"," New Sabzi Mandi"," Al Asif", "Sohrab Goth"," Water Pump"," Ayesha Manzil"] },
-    { type: "people-bus", number: "EV-5",fare: 80,               details: "Route from DHA city to Sohrab Goth", stops: ["DHA City"," Bahria Town", "Dumba Goth", "M9 Toll Plaza", "Jamali Pull"," New Sabzi Mandi", "Al Asif", "Sohrab Goth"] },
-    
-    { type: "local-bus", number: "11-C",fare: 20,                details: "City Route", stops: ["AKHTAR COLONY", "AZAM BASTI--AZAM TOWN", "KALA PUL","JPMC(JINNAH HOSPITAL)","LUCKY STAR(SADDAR)","SADDAR","PARKING PLAZA-SADDAR","LINES AREA","ISLAMIA COLLEGE","JAIL CHOWRANGI","NEW TOWN","OLD SABZI MANDI","HASSAN SQUARE","EXPO CENTER","CIVIC CENTER","SIR SYED UNIVERSITY","NIPA CHOWRANGI","SAFARI PARK","METRO SAFARI STORE","UNIVERSITY ROAD","NED UNIVERSITY","KARACHI UNIVERSITY","MAUSAMIYAT","SAFOORA","DOW OJHA CAMPUS"] },
-    { type: "local-bus", number: "16",fare: 20,                  details: "City Route", stops: ["BHAINS COLONY MOR","MANZIL PUMP","QAIDABAD","MALIR 15", "KALABOARD","MALIR HALT","CHOTA GATE-SHAH FAISAL COLONY","SHAH FAISAL COLONY GATE","NATA KHAN","DRIGH ROAD","KARSAZ","BALOCH COLONY","LAL KOTHI","NURSERY","GORA QABRISTAN","SADDAR"] },
-    { type: "local-bus", number: "19-D",fare: 20,                details: "City Route", stops: ["GIZRI","ZAMZAMA","NEELAM COLONY","ABDULLAH SHAH GHAZI","BILAWAL CHORANGI","SHIREEN JINNAH COLONY","ZIAUDDING UNIVERSITY -CLIFTON"] },
-    { type: "local-bus", number: "20",fare: 20,                  details: "City Route", stops: ["ITTEHAD TOWN", "GULSHAN E GHAZI", "BALDIA 9","BALDIA 8","RUBY MOR","POLICE TRAINING CENTER SAEEDABAD","MACH MOR","BALDIA 4","BALDIA 3","BALDIA 2","RASHEEDABAD","GCT COLLEGE MOR","S.I.T.E POLICE STATION","METRO MANGHOPIR STORE","HABIB BANK CHOWRANGI","GOLIMAR OLD","REXER LINE","GARDEN","SEVENTH DAY ADVENTIST HOSPITAL","SADDAR","CANTT STATION","DO TALWAR","DRIVING LICENSE OFFICE -CLIFTON","ABDULLAH SHAH GHAZI","BILAWAL CHOWRANGI","ZIAUDDING HOSPITAL -CLIFTON","SHIREEN JINNAH COLONY"] },
-    { type: "local-bus", number: "4-E",fare: 20,                 details: "City Route", stops: ["NOT FOUND"] },
-    { type: "local-bus", number: "4-H",fare: 20,                 details: "City Route", stops: ["4K CHORANGI", "CANTT STATION"] },
-    { type: "local-bus", number: "4-L",fare: 20,                 details: "City Route", stops: ["SOHRAB GOTH", "LASBELA", "RANCHORE LINE","ISLAMIA COLLEGE -NEW M.A JINNAG ROAD"] },
-    { type: "local-bus", number: "4-Q",fare: 20,                 details: "City Route", stops: ["SOHRAB GOTH", "LASBELA", "RANCHORE LINE"] },
-    { type: "local-bus", number: "51",fare: 20,                  details: "City Route", stops: ["NEW TOWN", "LIAQUAT NATIONAL HOSPITAL", "MALIR HALT"] },
-    { type: "local-bus", number: "52",fare: 20,                  details: "City Route", stops: ["MALIR HALT","WIRELESS GATE","CHOTA GATE","STAR GATE","NATAKHAN","DRIGH ROAD","PAF FAISAL BASE","KARSAZ","PIR PAGARA BUS STOP","NATIONAL STADIUM","AGHA KHAN HOSPITAL","LIAQUAT NATIONAL HOSPITAL"] },
-    { type: "local-bus", number: "55",fare: 20,                  details: "City Route", stops: ["MEMON GOTH -GADAP TOWN", "MALIR 15", "KALABOARD","MALIR HALT","WIRELESS GATE","CHOTA GATE","STAR GATE","NATAKHAN","DRIGH ROAD","PAF FAISAL BASE","KARSAZ","PIR PAGARA BUS STOP","NATIONAL STADIUM","AGHA KHAN HOSPITAL","LIAQUAT NATIONAL HOSPITAL","NEW TOWN","JAIL CHOWRANGI","PEOPLES SECRETARIAT","GURU MANDIR","LASBELA","SOLDIER BAZAAR","GARDEN","RANCHORE LINE","OLD HAJI CAMP -TIMBER MARKET","Lee MARKET"] },
-    { type: "local-bus", number: "7-C",fare: 20,                 details: "City Route", stops: ["BUFFER ZONE", "DC CENTRAL OFFICE", "PEOPLES CHOWRANGI","KARACHI MEDICAL AND DENTAL COLLEGE (K.M.D.C)", "LANDI KOTAL CHORANGI ", "ZIAUDDIN HOSPITAL(NORTH NAZIMABAD)","MOOSA COLONY-GULBERG TOWN", "KARIMABAD", "LIAQUATABAD no. 10 -LALUKHET","DAAK KHANA-LIAQUATABAD","RIZVIA SOCEITY- NAZIMABAD NO 1","KHAMOOSH COLONY","BARABOARD","NAURAS CHOWRANGI -S.I.T.E KARACHI","HABIB BANK CHOWRANGI","HAROONABAD","SIEMENS CHOWRANGI","GHANI CHOWRANGI","SHERSHAH","SHAHEEN HOTEL-SHERSHAH","SHERSHAH KABARI MARKET","PANKHA HOTEL- SHERSHAH","LEE MARKET","KHAJOOR BAZAAR- LEE MARKET","SARAFA BAZAAR","KHARADAR","TOWER","DOCKYARD"] },
-    { type: "local-bus", number: "7-STAR",fare: 20,              details: "City Route", stops: ["ORANGI 11", "ORANGI 5", "METRO CINEMA","BANARAS","HABIB BANK CHOWRANGI","NAZIMABAD PETROL PUMP","GHAREEBABAD","Liaqautabad no 10 -LALUKHET","ESSA NAGRI","HASSAN SQUARE","EXPO CENTERCIVIC CENTER","NATIONAL STADIUM","KARSAZ","PAF BASE FAISAL","DRIGH ROAD","NATA KHAN","STAR GATE","MALIR HALT","KALA BOARD","RCD GROUND","SAUDABAD CHOWRANGI","KHOKRAPAR"] },
-    { type: "local-bus", number: "9C", fare: 20,                 details: "City Route", stops: ["MALIR HALT","WIRELESS GATE","CHOTA GATE","STAR GATE","NATAKHAN","DRIGH ROAD","PAF FAISAL BASE","KARSAZ","PAF MUSEUM","AWAMI MARKAZ","BALOCH COLONY","FINE HOUSE","LAAL KOTHI","NURSERY","FTC BUILDING","AISHA BAWANI COLLEGE","REGENT PLAZA (SIUT)","JPMC(JINNAH HOSPITAL)"] },
-    { type: "local-bus", number: "A-25",fare: 20,                details: "City Route", stops: ["AHSANABAD","MAYMAR MOR","ABDULLAH GABOL GOTH","NEW SABZI MANDI","AL ASIF SQUARE","SOHRAB GOTH","WATER PUMP","AYESHA MANZIL","KARIMABAD","LIAQUATABAD No.10-LALUKHET","NAZIMABAD PETROL PUMP","NAZIMABAD No.1","HABIB BANK CHOWRANGI","METRO MANGHOPIR STORE","SALIKA","S.I.T.E POLICE STATION","LABOR SQUARE -METROVILLE S.I.T.E","GCT COLLEGE MOR","RASHEEDABAD","BALDIA 7 GRAVEYARD","BALDIA 19-D","RUBI MOR","POLICE TRAINING CENTER SAEEDABAD","MACH MOR","MURSHID HOSPITAL","NAVAL HOSPITAL","YOUSUF GOTH"] },
-    { type: "local-bus", number: "A-3",fare: 20,                 details: "City Route", stops: ["MAYMAR MOR","AL ASIF SQUARE","ABU; HASAN ISPHANI ROAD","GULSHAN POLICE STATION","MASKAN CHOWRANGI","DISCO BAKERY","GULSHAN CHOWRANGI","NIPA CHOWRANGI","OLD SABZI MANDI","EXPO CENTER","HASAN SQUARE","ESSA NAGRI","GHAREEBABAD","LIAQUATABAD No.10 -LALUKHET","NAZIMABAD PETROL PUMP","HABIB BANK CHOWRANGI","SIEMENS CHOWRANI","S.I.T.E -JINNAH AVENUE Rd","GHANI CHOWRANGI","SHERSHAH","MEEZAN HEAD OFFICE","GULBAI","AGRA TAJ COLONY","IC BRIDGE","WEST WHARF ROAD","DOCKYARD"] },
-    { type: "local-bus", number: "ABDULLAH",fare: 20,            details: "City Route", stops: ["SHERSHAH", "MEZAAN HEAD OFFICE", "GULBAI","AGRA TAJ COLONY","TOWER","US EMBASSY","BOAT BASIN","SUBMARINE CHOWK","PUNJAB CHOWRANGI","AKHTAR COLONY","KORANGI CROSSING ROAD","DEFENCE MOR","QUAIDABAD","QAYYUMABAD","MANZIL PUMP"] },
-    { type: "local-bus", number: "AL-AZAD", fare: 20,            details: "City Route", stops: ["KARACHI MARRIOT HOTEL", "SAFOORA",] },
-    { type: "local-bus", number: "AL-KHAIR",fare: 20,            details: "City Route", stops: ["MUSHARRAF COLONY -KEAMARI", "NAVAL COLONY", "MACH MOR","SHERSHAH","SHERSHAH KABAR MARKET","PANKHA HOTEL","MIRAN NAKKA LYARI","LEE MARKET"] },
-    { type: "local-bus", number: "BILAL", fare: 20,              details: "City Route", stops: ["ITTEHAD TOWN", "FAREED COLONY -ORANGI", "MOMINABAD -ORANGI","SHAHEEN COMPLEX","ORANGI 5","METRO CINEMA","BANARAS","HABIB BANK CHOWRANGI","NAZIMABAD NO 1","NAZIMABAD PETROL PUMP","LIAQUATABAD No 10 -LAUKHET","GHAREEBABAD","ESSA NAGRI","HASSAN SQUARE","NEW TOWN","JAIL CHOWRANGI","TARIQ ROAD","BAHADURABAD","SHAEED-E-MILLAT","BALOCH COLONY","GODAM CHOWRANGI","CHAMRA CHOWRANGI","VITA CHOWRANGI -KORANGI","BILAL CHOWRANGI","LUCKY STAR -SADDAR","SINGER CHOWRANGI","CM HOUSE -F-R SADDAR","DAWOOD CHOWRANGI","YUNUS CHOWRANGI","KARACHI GYMKHANA","MEHRAN HIGHWAY","LABOUR SQUARE -LANDHI TOWN","DAWOOD ROUND ABOUT"] },
-    { type: "local-bus", number: "D-1", fare: 20,                details: "City Route", stops: ["SINDHI GOTH", "PIPRI GOTH", "RAZZAQABAD","BHAINS COLONY MOR","MANZIL PUMP","QUAIDABAD","MALIR COURT","MALIR 15","MALIR HALT","STAR GATE -SHA FAISAL COLONY","SHA FAISAL COLONY GATE","NATA KHAN","DRIGH ROAD","PAF BASE FAISAL","KARSAZ","PIR PAGARA BUS STOP","NATIONAL STADIUM","MASHRIQ CENTER","HASSAN SQUARE","EXPO CENTER","ESSA NAGRI","GHAREEBABAD","LIAQUATABAD No.10 -LALUKHET","NAZIMABAD PETROL PUMP","HABIB BANK CHOWRANGI","VALIKA","FRONTIER MOR METROVILLE","ORANGI 4","MOMINABAD -ORANGI TOWN","ABIDABAD"] },
-    { type: "local-bus", number: "D-11", fare: 20,               details: "City Route", stops: ["ITTEHAD TOWN", "PAKORA CHOWK", "BALDIA 8","BALDIA 9","BISMILLAH CHOWK","JUNGLE SCHOOL (BALDIA)","BALDIA 19-D","BALDIA 7 GRAVEYARD","RASHEED ABAD","GCT COLLEGE MOR","GHANI CHORANGI","SIEMENS CHOWRANGI","HABIB BANK CHOWRANGI","LIAQUATABAD No.10 -LALUKHET","GHAREEBABAD","BALOCH HOTEL","ESSA NAGRI","EXPO CENTER","HASSAN SQUARE","CIVIC CENTER","MASHRIQ CENTER","NATIONAL STADIUM","PIR PAGARA BUS STOP","NURSERY","BALOCH COLONY","KARSAZ","PAF BASE FAISAL","DRIGH ROAD","NATA KHAN","SHAH FAISAL COLONY GATE","STAR GATE -SHAH FAISAL COLONY","CHOTA GATE - SHAH FAISAL COLONY","WIRELESS GATE BUS STOP","MALIR HALT","KALA BOARD","MALIR 15","MALIR COURT","QUAIDABAD","DAWOOD CHOWRANGI","FUTURE COLONY -LANDHI","MANSHERA COLONY","MURTUZA CHOWRANGI","BILAL CHOWRANGI","VITA CHOWRANGI -KORANGI","SHAN CHOWRANGI -KORANGI","BROOKES CHOWRANGI","GODAM CHOWRANGI","IMTIAZ STORE -KPT INTERCHANGE","QAYYUMABAD","SHARIFABAD -KORANGI"] },
-    { type: "local-bus", number: "D-17", fare: 20,               details: "City Route", stops: ["QUAIDABAD", ] },
-    { type: "local-bus", number: "D-7",  fare: 20,               details: "City Route", stops: ["NEW MUZAFFARABAD COLONY", "DAWOOD CHOWRANGI", "QUAIDABAD","MALIR COURT","MALIR 15","KALABOARD","MALIR HALT","STAR GATE -SHAHFAISAL COLONY","SHAH FAISAL COLONY GATE","NATA KHAN","DRIGH ROAD","MILENNIUM MALL","JOHAR MOR","ALADIN PARK","NIPA CHOWRANGI","GULSHAN CHOWRANGI","LUCKY ONE MALL","SOHRAB GOTH","AL ASIF SQUARE","PUNJAB ADDS -BUS STAND","JAMALI FLYOVER","KHADIM HUSSAIN SOLANGI GOTH","BADAR COMMERCIAL 26 STREET"] },
-    { type: "local-bus", number: "D-8",  fare: 20,               details: "City Route", stops: ["NEW KARACHI INDUSTRIAL AREA (SECTOR 6)", "AL NOOR HOSPITAL GULBERG", "HYDERI","NAZIMABAD PETROL PUMP","NAZIMABAD No 1","SHERSHAH","GULBAI"] },
-    { type: "local-bus", number: "DAATA",fare: 20,               details: "City Route", stops: ["SURJANI KDA", "4K CHOWRANGI", "GODHRA","SHAFIQ MOR","GULSHAN CHOWRANGI","NIPA CHOWRANGI","NEW SABZI MANDI","HASSAN SQUARE","JAIL CHOWRANGI","TARIQ ROAD","NURSERY","REGENT PLAZA (SIUT)","JPMC(JINNAH HOSPITAL)","ASKARI 1","CANTT STATION","PUNJAB CHOWRANGI","DO TALWAR","CLIFTON","ABDULLAH SHAH GHAZI","DOLMEN MALL - CLIFTON"] },
-    { type: "local-bus", number: "F-11", fare: 20,               details: "City Route", stops: ["PAKHTOONABAD", "NAYA NAZIMABAD -MAIN GATE", "NUSRAT BHUTTO COLONY","WALANDARIYA","SAKHI HASAN CHORANGI","PIYALA HOTEL -PEOPLES CHOWRANGI","GULBERG CHOWRANGI","WATER PUMP","KARACHI INSTITUTE OF HEART DISEASE","LUCKY ONE MALL"," GULSHAN CHOWRANGI","NIPA","METRO SAFARI","FEDERAL UNIVERSITY ROAD","HASSAN SQUARE","NEW TOWN","JAIL CHOWRANGI","TARIQ ROAD","SOCEITY OFICE -P.E.C.H.S","ALLAH WALI CHOWRANGI -TARIQ ROAD","FTC BUILDING","NURSERY","KALAPUL","DEFENCE MOR","DHA PHASE 2","AKHTAR COLONY","QAYYUMABAD","KORANGI CROSSING ROAD","KORANGI 1","KORANGI 2","KORANGI 3","KORANGI 4","KORANGI 5","KORANGI 6","89LANDHI Rd","DAWOOD CHOWRANGI","GUL AHMED MILL","BHAINS COLONY MOR"] },
-    { type: "local-bus", number: "G-3",  fare: 20,               details: "City Route", stops: ["SAFOORA", "MAUSAMIYAT", "KARACHI UNIVERSITY","NED UNIVERSITY","UNIVERSITY ROAD","SAFARI PARK","METRO SAFARI STORE","NIPA","FEDERAL URDU UNIVERSITY Rd","SIR SYED UNIVERSITY","HASSAN SQUARE","EXPO CENTER","CIVIC CENTER","OLD SABZI MANDI","JAIL CHOWRANGI","JAMSHED ROAD","NUMAISH CHOWRANGI","SEVENTH-DAY ADVENTIST HOSPITAL","ISLAMIA COLLEGE -NEW M.A JINNAH ROAD","SADDAR","LINES AREA","BURNS ROAD","URDU BAZAAR","JAMA CLOTH MARKET","CIVIL HOSPITAL","LIGHT HOUSE","BOLTON MARKET","TOWER","ICI BRIDGE","AAGRA TAJ COLONY","GULBAI","MEEZAN HEAD OFFICE","SHERSHAH","BALDIA 2","BALDIA 3","BALDIA 4","BALDIA 6","MUHAJIR CAMP No.7"] },
-    { type: "local-bus", number: "G-7",  fare: 20,               details: "City Route", stops: ["SAFOORA","DOW OJHA CAMPUS","MOSAMIYAT","KARACHI UNIVERSITY","NED UNIVERSITY","UNIVERSITY ROAD","NIPA","SIR SYED CHOWRANGI","OLD SABZI MANDI","EXPO CENTER","HASAN SQUARE","CIVIC CENTER","NEW TOWN","BAHADURABAD","TARIQ ROAD","SOCEITY GRAVEYARD","KHUDADAD COLONY","NUMAISH CHOWRANGI","MA JINNAH ROAD","JAM CLOTH MARKET","CIVIL HOSPITAL","BOLTON MARKET","TOWER","AGRA TAJ COLONY","GULBAI","MEEZAN HEAD OFFICE","SHERSHAH","MOHAJIR CAMP No. 7","MOHAJIR CAMP No 8","NAI ABADI","GULSHAN GHAZI","MOHAJIR CAMP"] },
-    { type: "local-bus", number: "G-11", fare: 20,               details: "City Route", stops: ["YOUSUF GOTH", "HUB RIVER ROAD", "MURSHID HOSPITAL","MACH MOR","TRAFFIC POLICE KIOSK -BALDIA 2","PHILIPS FACTORY -S.I.T.E KARACHI","S.I.T.E POLICE STAION","METROVILLE KHYBER GATE","FRONTIER MORR METROVILLE","BADAR CHOCK","ORANGI 4","ORANGI 5","METRO CINEMA","BANARAS","BANARAS","ABDULLAH COLLEGE","BOARD OFFICE","BANK QUARTERS -NORTH NAZIMABAD","ZIAUDDIN HOSPITAL (NORTH NAZIMABAD)","MOOSA COLONY -GULBERG TOWN","KARIMABAD","NASEERABAD -GULBERG TOWN","WATER PUMP","MOTI MAHAL","NIPA CHOWRANGI","KARACHI SAFARI PARK","METRO SAFARI STORE","ABDULLAH APARTMENTS -GULISTAN-E-JOHAR","JOHAR MOR","JOHAR CHOWRANGI","RABIA CITY -GULISTAN-E-JOHAR","PEHLWAN GOTH","SAFOORA","KIRAN HOSPITAL","MAROORA GOTH BUS STOP"] },
-    { type: "local-bus", number: "G-13", fare: 20,               details: "City Route", stops: ["BANARAS", "METRO CINEMA", "ABDULLAH COLLEGE","KDA CHOWRANGI","ZIAUDDIN HOSPITAL (NORTH NAZIMABAD)","LANDI KOTAL CHOWRANGI","MEENA BAZAAR","KARIMABAD"] },
-    { type: "local-bus", number: "G-17", fare: 20,               details: "City Route", stops: ["MACH MOR","POLICE TRAINING CENTER SAEEDABAD","RUBI MOR","PARESHAN CHOWK -FAQIR COLONY Rd","FAQIR COLONY","BADAR CHOWK","BACHA KHAN CHOWK","ABDULLAH COLLEGE","BOARD OFFICE","HYDERI","SAKHI HASN CHOWRANGI","ERUM SHOPPING","NAGAN CHOWRANGI","AL NOOR MOR","SOHRAB GOTH","AL ASIF SQUARE","ABUL HASAN ISPHANI ROAD","MASKAN CHOWRANGI","SAFARI PARK","METRO SAFARI STORE","UNIVERSITY ROAD","NED UNIVERSITY","KARACHI UNIVERSITY","MOSAMIYAT","SAFOORA","KIRAN HOSPITAL","MAROORA GOTH BUS STOP"] },
-    { type: "local-bus", number: "G-19", fare: 20,               details: "City Route", stops: ["HUB FILTER PLANT","SULTANABAD -NEW KARACHI","SHRINES OF MANGHOPIR","NAYA NAZIMABAD -MAIN GATE","QASBA MOR","BANARAS","VALIKA","HABIB BANK CHOWRANGI","BARABOARD","JAHANGIRABAD","GOLIMAR OLD","KHAMOSH COLONY -NAZIMABAD","DAAK KHANA -LALUKHET","LIAQUATABAD No.10 LALUKHET","GHAREEBABAD","ESSA NAGRI","NIPA CHOWRANGI","HASAN SQUARE","SAFARI PARK","METRO SAFARI STORE","ALADIN PARK","JOHAR MOR","JOHAR CHOWRANGI","PEHLWAN GOTH","NATIONAL HIGHWAY 5"] },
-    { type: "local-bus", number: "G-27", fare: 20,               details: "City Route", stops: ["YOUSUF GOTH", "BAKRA PIRI -YUSUF GOTH", "AFRIDI CHOWK -CHISTI NAGAR","EID GAH MOR -ORANGI","L BLOCK ROAD -AZIZ NAGAR","SABRI CHOWK ROAD -ORANGI TOWN","URDU CHOWK -ORANGI TOWN","ORANGI No10","ORANGI No4","ORANGI No5","METRO CINEMA","BANARAS","ABDULLAH COLLEGE","BOARD OFFICE","KDA CHOWRANGI","ZIAUDDIN HOSPITAL (NORTH NAZIMABAD)","LANDI KOTAL CHOWRANGI","PEOPLES CHOWRANGI","BUFFERZONE","SOHRAB GOTH","FAZAL MILL -BLOCK 21 FEDERAL B AREA","NIPA","SAFARI PARK","METRO SAFARI STORE","JOHAR CHOWRANGI","PEHLWAN GOTH","PIA SOCEITY","BAKHTAWAR GOTH -GULISTAN-E-JOHAR","SAFOORA","KIRAN HOSPITAL"] },
-    { type: "local-bus", number: "GULISTAN",fare: 20,            details: "City Route", stops: ["BHITAIABAD", "HABIB UNIVERSITY", "JOHAR CHOWRANGI", "JOHAR MOR"," NIPA"," SAFARI PARK", "METRO SAFARI STORE", "FEDERAL UNIVERSITY ROAD", "HASSAN SQUARE", "EXPO CENTER", "CIVIC CENTER", "NEW TOWN", "JAIL CHOWRANGI", "NUMAISH CHOWRANGI", "M.A JINNAH ROAD", "SEVENTH-DAY ADVENTIST HOSPITAL", "URDU BAZAAR", "JAMA CLOTH MARKET", "CIVIL HOSPITAL", "BOLTON MARKET", "TOWER", "BAHRIA COMPLEX 1", "BAHRIA COMPLEX 2"," BAHRIA COMPLEX 3", "US EMBASSY KARACHI", "MAI KOLACHI ROAD", "BOAT BASIN", "BILAWAL CHOWRANGI", "SOUTH CITY HOSPITAL-CLIFTON"," ABDULLAH SHAH GHAZI", "KHAYABAN-E-ITTEHAD", "SEA VIEW -CLIFTON"," SAUDI EMBASSY -DHA V"] },
-    { type: "local-bus", number: "ILYAS",fare: 20,               details: "City Route", stops: ["ITTEHAD TOWN", "BALDIA 9", "BALDIA 8", "BISMILLAH CHOWK", "JUNGLE SCHOOL (BALDIA)", "POLICE TRAINING CENTER SAEEDABAD", "MACH MOR", "BALDIA 4", "BALDIA 3", "BALDIA 2"," SHERSHAH", "MEEZAN HEAD OFFICE"," GULBAI", "AGRA TAJ COLONY", "IC BRIDGE", "TOWER", "I.I. CHUNDRIGAR", "BOLTON MARKET", "LIGHT HOUSE", "ARTS COUNCIL OF PAKISTAN KARACHI", "GOVERNOR HOUSE SINDH", "PIDC", "CANTT STATION", "DELHI COLONY", "PUNJAB CHOWRANGI", "DEFENCE MOR", "NMC HOSPITAL", "DHA II", "KPT INTERCHANGE"," QAYYUMABAD", "INDUS HOSPITAL -KORANGI", "KORANGI 1", "KORANGI 2", "KORANGI 3", "KORANGI 6", "KORANGI 5", "LANDHI 6", "LANDHI 5", "LANDHI 4", "LANDHI 3", "LANDHI 2", "LANDHI 1", "BHAINS COLONY MOR"] },
-    { type: "local-bus", number: "IMRAN", fare: 20,              details: "City Route", stops: ["HAWKSBAY BEACH", "PAKISTAN MARINE ACADEMY MARIPUR", "GULBAI", "AGRA TAJ COLONY", "IC BRIDGE", "KHARADAR", "TOWER", "BOAT BASIN", "PUNJAB CHOWRANGI", "GOLD MARK SHOPPING MALL1", "ASKARI 1 -KARACHI", "KPT INTERCHANGE", "IMTIAZ STORE -KPT INTERCHANGE", "QAYYUMABAD"] },
-    { type: "local-bus", number: "KHAN",  fare: 20,              details: "City Route", stops: ["ABDULLAH CHOWK", "SURJANI KDA", "KARIMI CHOWRANGI", "4K CHOWRANGI", "2 MINUTE CHOWRANGI", "ROAD 2400 -AISHA COMPLEX", "POWERHOUSE CHOWRANGI", "ROAD 4200 -SALEEM CENTER", "UP MOR", "NAGAN CHOWRANGI", "ERUM SHOPPING MALL", "SAKHI HASAN CHOWRANGI", "JUMMAH BAZAAR (BHAYANI CENTER)", "FIVE STAR CHOWRANGI", "HYDERI", "BOARD OFFICE", "ANNU BHAI PARK", "ENQUIRY OFFICE", "NAZIMABAD No1", "SANITARY MARKET (GULBAHAR)", "LASBELA"," PATEL PARA (GURU MANDIR)", "NUMAISH CHOWRANGI", "M.A JINNAH ROAD"," SEVENTH-DAY ADVENTIST HOSPITAL", "URDU BAZAAR", "JAMA CLOTH MARKET", "CIVIL HOSPITAL", "BOLTON MARKET", "TOWER", "US EMBASSY KARACHI"] },
-    { type: "local-bus", number: "MARWAT",fare: 20,              details: "City Route", stops: ["QAYYUMABAD", "SHAAN CHOWRANGI", "JAMIA DARUL ULOOM KARACHI", "FUTURE COLONY -LANDHI TOWN", "DAWOOD CHOWRANGI", "QUAIDABAD", "MALIR 15", "KALA BOARD", "MALIR HALT", "DRIGH ROAD", "BALOCH COLONY", "LAL KOTHI SHAHRAH-E-FAISAL"," NURSERY", "ALLAH WALI CHOWRANGI -TARIQ ROAD", "TARIQ ROAD", "KHUDABAD COLONY", "NUMAISH CHOWRANGI", "M.A JINNAH ROAD", "JAMA CLOTH MARKET", "LIGHT HOUSE", "BOLTON MARKET", "TOWER"," KHARADAR", "ICI BRIDGE", "AGRA TAJ COLONY"," GULBAI"," PAF MASROOR BASE -MAURI PUR", "TRUCK ADA MAURI PUR", "PAKISTAN MARINE ACADEMY MAURIPUR", "HAWKSBAY BEACH", "BHUDNI GOTH" ] },
-    { type: "local-bus", number: "MASHALLAH",fare: 20,           details: "City Route", stops: ["HIJRAT COLONY"," SULTANABAD (NEW HAJI CAMP)", "LALAZAR", "NETTY JETTY BRIDGE", "TOWER", "BOLTON MARKET", "LIGHTHOUSE", "CIVIL HOSPITAL", "JAMACLOTH MARKET", "TIBET CENTER", "MAKKI MASJID-SADDAR"," GARDEN", "REXER LINE", "GOLIMAR OLD", "BARA BOARD", "HABIB BANK CHOWRANGI", "VALIKA", "BANARAS", "ORANGI 5", "ORANGI 12", "ORANGI 13"," ORANGI 14", "GULSAHN-E-BIHAR", "KHAIRABAD -GULSAHN-E-ZIA"] },
-    { type: "local-bus", number: "MASHRIQ",  fare: 20,           details: "City Route", stops: ["BHAINS COLONY MOR", "LABOUR SQUARE -LANDHI TOWN", "MANZIL PUMP", "QUAIDABAD", "MALIR 15"," KALA BOARD"," MALIR HALT", "RACE COURSE Rd -MALIR CANTT", "MALIR CANTT BOARD"," SAFOORA", "DOW OJHA CAMPUS", "MOSAMIYAT", "UNIVERSITY ROAD", "KARACHI UNIVERSITY", "NED UNIVERSITY","NIPA", "GULSAHN CHOWRANGI", "LUCKY ONE MALL", "LUCKY TEXTILE MILL -F.B AREA", "SOHRAB GOTH", "CITY PHARMA - F.B INDUSTRIAL AREA", "ANDA MOR", "NAGAN CHOWRANGI", "UP MOR", "POWER HOUSE CHOWRANGI", "4K CHOWRANGI", "KHUDA KI BASTO - TAISER TOWN"] },
-    { type: "local-bus", number: "MASOOD",   fare: 20,           details: "City Route", stops: ["YOUSUF GOTH", "NAVAL COLONY", "MURSHID HOSPITAL", "MACH MOR", "POLICE TRAINING CENTER SAEEDABAD", "RUBI MOR", "JUNGLE SCHOOL (BALDIA)","FAQIR COLONY", "MOMINABAD -ORANGI TOWN", "METRO MANGHOPIR STORE", "HABIB BANK CHOWRANGI", "GOLIMAR OLD", "REXER LINE", "GARDEN", "SADDAR", "TAJ COMPLEX NUMAISH", "KALA PUL", "NADRA MEGA CENTER DHA"] },
-    { type: "local-bus", number: "MUSLIM", fare: 20,             details: "City Route", stops: ["KEAMARI", "JACKSON MARKET", "PORT GRAND KARACHI", "TOWER", "I.I. CHUNDRIGAR", "BOLTON MARKET","JAMACLOTH MARKET", "SHAHEEN COMPLEX","ARTS COUNCIL OF PAKISTAN KARACHI"," CANTT STATION", "JPMC (JINNAH HOSPITAL)","REGENT PLAZA (SIUT)", "FTC BUILDING", "NURSERY", "LAAL KOTHI", "FINE HOUSE", "BALOCH COLONY", "AWAMI MARKAZ", "PAF MUSEUM", "KARSAZ", "PAF BASE FAISAL", "DRIGH ROAD", "NATA KHAN", "SHAH FAISAL COLONY GATE"," CHHOTA GATE"," WIRELESS GATE BUS STUP", "KALA BOARD", "MALIR 15", "MALIR HALT", "MALIR SESSION COURT", "MURGHI KHANA"," QUAIDABAD", "MANZIL PUMP", "BHAINS COLONY MOR", "FAST UNIVERSITY-BHAINS COLONY","CHOWKANDI MOR", "ABDULLAH GOTH"," RAZZAQABAD", "STEEL MILL MOR", "NATIONAL HIGHWAY 5", "GULSAHN-E-HADEED"] },
-    { type: "local-bus", number: "N",      fare: 20,             details: "City Route", stops: ["KARIMABAD", "KHARADAR", "KEAMARI","MASAN CHOWK","SHIREEN JINNAH COLONY"] },
-    { type: "local-bus", number: "N-4",   fare: 20,              details: "City Route", stops: ["METROVILLE KHYBER GATE", "FRONTIER MOR METROVILLE", "MEEZAN HEAD OFFICE","GULBAI","TOWER","AGRA TAJ COLONY","KEAMARI","MASAN CHOWK","SHIREEN JINNAH COLONY","GIZRI","CLIFTON","ABDULLAH SHAH GHAZI"] },
-    { type: "local-bus", number: "N-5",   fare: 20,              details: "City Route", stops: ["NAVAL COLONY", "FAREED COLONY -ORANGI TOWN", "URDU CHOWK -ORANGI TOWN","ORANGI No 10","ORANGI No 5","BANARAS","METRO MANGHOPIR STORE","HABIB BANK CHOWRANGI", "SIEMENS CHOWRANGI","HAROONABAD", "GHANI CHOWRANGI","SHERSHAH","MEEZAN HEAD OFFICE","GULBAI","AGRA TAJ COLONY","TOWER","MT KHAN ROAD","PIDC","CANTT STATION","JPMC (JINNAH HOSPITAL)","KALA PUL","DEFENCE SOCEITY", "AKHTAR COLONY","QAYYUMABAD", "BISCUIT FACTORY","CHAMRA CHOWRANGI"] },
-    { type: "local-bus", number: "NEW AFRIDI",fare: 20,          details: "City Route", stops: ["BHAINS COLONY MOR", "PMTF -JUMMAH GOTH", "MANSHERA COLONY","MURTAZA CHOWRANGI","GODAM CHOWRANGI","QAYYUMABAD","DEFENCE MOR","PUNJAB CHOWRANGI","US EMBASSY KARACHI","SAUDI EMBASSY -DHA V","ABDULLAH SHAH GHAZI","SHIREEN JINNAH COLONY","MASAN CHOWK","KEAMARI","TOWER","AGRA TAJ COLONY","GULBAI","MEEZAN HEAD OFFICE","SHERSHAH","GHANI CHOWRANI","HAROONABAD","SIEMENS CHOWRANGI","HABIB BANK CHOWRANGI","METROVILLE KHYBER GATE","MOMINABAD -ORANGI TOWN","FAQIR COLONY","GULSHAN-E-GHAZI"] },
-    { type: "local-bus", number: "R-13",      fare: 20,          details: "City Route", stops: ["TOWER", "ICI BRIDGE", "AGRA TAJ COLONY","GULBAI","PAF MASROOR","HAWKSBAY BEACH"] },
-    { type: "local-bus", number: "SAFARI COACH", fare: 20,       details: "City Route", stops: ["DHA CITY KARACHI"] },
-    { type: "local-bus", number: "SHIRAZ",  fare: 20,            details: "City Route", stops: ["SAFOORA","MOSAMIYAT","KARACHI UNIVERSITY","NED UNIVERSITY","UNIVERSITY ROAD","NIPA","KAFARI PARK","SIR SYED UNIVERSITY ","FEDERAL URDU UNIVERSITY (UNIVERSITY ROAD)","EXPO CENTER","CIVIC CENTER","HASSAN SQUARE","JAIL CHOWRANGI","NEW TOWN","NUMAISH CHOWRANGI","M.A.JINNAH ROAD","CIVIL HOSPITAL","BOLTON MARKET","TOWER","AGRA TAJ COLONY","GULBAI","PAKISTAN MARINE ACADEMY","MARIPUR CYCLE CHOWRANGI","HAWKS BAY BEACH"] },
-    { type: "local-bus", number: "SL",   fare: 20,               details: "City Route", stops: ["SADDAR", "LUCKY STAR -SADDAR", "JPMC (JINNAH HOSPITAL)","CANTT STATION","CENTRAL ORDINANCE DEPOT","KALAPUL","DEFENCE MOR","AKHTAR COLONY","QAYYUMABAD","IMTIAZ STORE -KPT INTERCHANGE","KORANGI CROSSING ROAD","NASIR JUMP","KORANGI 1","KORANGI 2","KORANGI 2½","KORANGI 3","KORANGI 4","KORANGI 5","KORANGI 6","LANDHI 4","BABAR MARKET","89 LANDHI ROAD"] },
-    { type: "local-bus", number: "SUPER HASAN ZAI",fare: 20,     details: "City Route", stops: ["NEW SABZI MANDI", "MAYMAR MOR", "JAMALI FLYOVER","AL ASIF SQUARE","SOHRAB GOTH","LUCKY ONE MALL","GULSHAN CHOWRANGI","NIPA","OLD SABZI MANDI","HASAN SQUARE","EXPO CENTER","NEW TOWN","JAIL CHOWRANGI","TARIQ ROAD","ALLAH WALI CHOWRANGI -TARIQ ROAD","NURSERY","GORA QABRISTAN","REGENT PLAZA","JPMC (JINNAH HOSPITAL)","CANTT STATION","ASKARI 3","DO TALWAR","CLIFTON","DOLMEN MALL -CLIFTON","ABDULLAH SHA GHAZI","SOUTH CITY HOSPITAL -CLIFTON","BILAWAL CHOWRANGI","ZIAUDDIN UNIVERSITY -CLIFTON","SHIREEN JINNAH COLONY"] },
-    { type: "local-bus", number: "SUPER MUSLIM COACH",fare: 20,  details: "City Route", stops: ["PORT QASIM", "BHAINS COLONY MOR", "MANZIL PUMP","QADDAFI TOWN","YUNUS CHOWRANGI","DAWOOD CHOWRANGI","MANSHERA COLONY","BILAL CHOWRANGI","GODAM CHOWRANGI","QAYYUMABAD","AKHTAR COLONY","KHAYABAN-E-ITTEHAD","KHAYABAN-E-SHAHBAZ","BADAR COMMERCIAL 26 STREET","ABDULLAH SHAH GHAZI","CLIFTON","SHIREEN JINNAH COLONY"] },
-    { type: "local-bus", number: "W-11",fare: 20,                details: "City Route", stops: ["AHSANABAD", "ALLAH WALI -NEW KARACHI", "SINDHI HOTEL -NEW KARACHI","NALA STOP -NEW KARACHI","GODHRA","SHAFIQ MOR","SOHRAB GOTH","ANCHOLI","WATER PUMP","AYESHA MANZIL","KARIMABAD","LIAQUATABAD NO 10-LALUKHET","JAHANGIR ROAD","GURU MANDIR","NUMAISH CHOWRANGI","SEVENTH-DAY ADVENTIST HOSPITAL","JAMA CLOTH MARKET","LIGHT HOUSE","BOLTON MARKET","TOWER","NETTY JETTY BRIDGE","JACKSON MARKET","KEAMARI"] },
-    { type: "local-bus", number: "W-12",fare: 20,                details: "City Route", stops: ["North Karachi", "Stop No 4", "Madina Colony", "Sindhi hotel", "D.turn Kala school No 2", "Two Minites stop", "Naibadi", "Manghopir Road", "Qasba Colony", "Banaras Colony", "Abdullah college", "Paposh nagar", "Abbasi hospital", "Petrol Pump", "Gujarnala", "Liaquatabad No 10", "Gharibabad", "Hassan Square", "Saba Akhtar Road", "Swana City", "Masjid Abrar", "Zia Colony", "Gulshan Chorangi", "N.I.P.A", "Safari Park", "Faran Centre", "Jouhar Chowrangi", "Rabia City", "Pirani Centre", "Ajmer Palza", "Pahlwan Goth", "Safoora Goth"] },
-    { type: "local-bus", number: "W-22",fare: 20,                details: "City Route", stops: ["ANDA MOR -NORTH KARACHI", "ABDULLAH COLLEGE", "BOARD OFFICE","NAZIMABAD PETROL PUMP","JAIL CHOWRANGI","NEW TOWN","BAHADURABAD","TARIQ ROAD","KORANGI CROSSING ROAD","KORANGI 2½"] },
-    { type: "local-bus", number: "W-25",fare: 20,                details: "City Route", stops: [ "NAGAN CHOWRANGI", "HYDERI"] },
-    { type: "local-bus", number: "W-55",fare: 20,                details: "City Route", stops: ["ORANGI 5", "BANARAS", "HYDERI","NAGAN CHOWRANGI","ABDULLAH MOR SURJANI"] },
-    { type: "local-bus", number: "X-10",fare: 20,                details: "City Route", stops: ["ITTEHAD TOWN", "BALDIA 9", "BALDIA 8","BISMILLAH CHOWK","JUNGLE SCHOOL (BALDIA )","RUBI MOR","POLICE TRAINING CENTER SAEEDABAD","MACH MOR","BALDIA 4","BALDIA 3","BALDIA 2","SHERSHAH","GHANI CHOWRANGI","HAROONABAD","HABIB BANK CHOWRANGI","NAZIMABAD NO 1","NAZIMABAD PETROL PUMP","LIAQUATABAD NO.10 -LAUKHET","TEEN HATTI","GURU MANDIR","PEOPLES SECRETARIAT","LINES AREA","SADDAR","LUCKY STAR SADDAR","CANTT STATION","ASKARI 3","DELHI COLONY","PUNJAB COLONY","P&T COLONY","GIZRI","KHAYABAN-E-ITTEHAD","MISRI SHAH","DHA VI"] },
-    { type: "local-bus", number: "X-23",fare: 20,                details: "City Route", stops: ["FAREED COLONY -ORANGI TOWN", "FAQIR COLONY", "ORANGI NO. 10","ORANGI NO. 4","MOMINABAD -ORANGI TOWN","FRONTIER MOR METROVILLE","S.I.T.E POLICE STATION","VALIKA","HABIB BANK CHOWRANGI","NAZIMABAD NO 1","NAZIMABAD PETROL PUMP","LIAQUATABAD No.10","LALUKHET","GHAREEBABAD","ESSA NAGRI","HASAN SQUARE","NEW TOWN","JAIL CHOWRANGI","BAHADURABAD","TARIQ ROAD","KALAPUL","MANZOOR CHOWRANGI","QAYYUMABAD","CHAMRA CHOWRANGI","BILAL COLONY -LANDHI TOWN"] },
-    { type: "local-bus", number: "X-8",fare: 20,                 details: "City Route", stops: ["ITTEHAD TOWN", "DAWOOD GOTH", "NAVAL COLONY","MACH MOR","HUB RIVER ROAD","BALDIA 4","BALDIA 3","BALDIA 2","SHERSHAH","MEEZAN HEAD OFFICE","GULBAI","AGRA TAJ COLONY","IC BRIDGE","KHARADAR","TOWER","KEAMARI","MASAN CHOWK","SHIREEN JINNAH COLONY","ZIAUDDIN UNIVERSITY -CLIFTON","ABDULLAH SHAH GHAZI","BADAR COMMERCIAL 26 STREET","KHAYABAN-E-SHAMSHEER -DHA V","SABA COMMERCIAL AREA -DHA V","KHAYBAN-E-ITTEHAD","QAYYUMABAD","GODAM CHOWRANGI","CHAMRA CHOWRANGI","VITA CHOWRANGI -KORANGI","BILAL CHOWRANGI","SINGER CHOWRANGI","K AREA -SHERABAD COLONY","JAMIA DARUL ULOOM KARACHI","36-B AREA -LANDHI TOWN","ZAMANABAD -LANDHI TOWN","LANDHI 4","BABAR MARKET","89 LANDHI Rd","DAWOOD CHOWRANGI","MEHRAN HIGHWAY","ROHRI GOTH -LANDHI TOWN"] },
-    { type: "local-bus", number: "Z-2",fare: 20,                 details: "City Route", stops: ["GULSHAN GHAZI", "FAREED COLONY -ORANGI TOWN","ORANGI NO. 10","ORANGI NO. 5", "BANARAS","HABIB BANK CHOWRANGI","BARA BOARD","GARDEN","MAKKI MASJID -SADDAR","SADDAR","HOTEL MEHRAN -SHARAH-E-FAISAL Rd","CANTT STATION","PUNJAB CHOWRANGI","KHAYABAN-E-GHALIB DHA VIII","KHAYABAN-E-SHAHEED"] },
-    
-    
-    { type: "chinchi", number: "007",fare: 20,                   details: "Short Distance Ride", stops: ["SHRINE OF MANGHOPIR", "MANGHOPIR", "PAKKHTOONABAD","NAYA NAZIMABAD -MAIN GATE","NEW MIANWALI COLONY -MANGHOPIR Rd","NUSRAT BHUTTO COLONY","QALANDRIA CHOWK","SAKHI HASAN CHOWRANGI","FIVE STAR CHOWRANGI","HYDERI","KDA CHOWRANGI","BOARD OFFICE","NAZIMABAD PETROL PUMP","LIAQUATABAD NO 10 -LALUKHET","DAAK KHANA"] },
-    { type: "chinchi", number: "2-J",fare: 20,                   details: "Short Distance Ride", stops: ["SADDAR", "EMPRESS MARKET", "LINES AREA","GURU MANDIR","JAHANGIR ROAD","TEEN HATTI","DAAK KHANA -LIAQUATABAD","LIAQUATABAD NO. 10 -LALUKHET","NAZIMABAD PETROL PUMP","NAZIMABAD NO 7","BOARD OFFICE","KDA CHOWRANGI","HYDERI","FIVE STAR CHOWRANGI","NADRA MEGA CENTER -NORTH NAZIMABAD","SAKHI HASAN CHOWRANGI","HAROON SHOPPING CENTER","ERUM SHOPPING","NAGAN CHOWRANGI","UP MOR","ROAD 4200- SALEEM CENTER","POWER HOUSE CHOWRANGI","BARA MARKET","ROAD 2400-AISHA COMPLEX","2 MINUTE CHOWRANGI","AL HAMEED"] },
-    { type: "chinchi", number: "4-E",fare: 20,                   details: "Short Distance Ride", stops: ["SURJANI -7A", "HARI MASJID -SURJANI TOWN","SURJANI KDA", "4K CHOWRANGI","MADIHA STOP","2 MINUTE CHOWRANGI","ROAD 2400-AISHA COMPLEX","POWER HOUSE CHOWRANGI","ROAD 4200- SALEEM CENTER","NAGAN CHOWRANGI","UP MOR","ERUM SHOPPING","HAROON SHOPPING CENTER","SAKHI HASAN CHOWRANGI","NADRA MEGA CENTER -NORTH NAZIMABAD","FIVE STAR CHOWRANGI","HYDERI","KDA CHOWRANGI","BOARD OFFICE","NAZIMABAD NO 7","NAZIMABAD PETROL PUMP","GOLIMAR OLD","LASBELA","PATEL PARA","GURU MANDIR"] },
-    { type: "chinchi", number: "4-X",fare: 20,                   details: "Short Distance Ride", stops: ["SURJANI -7A", "HARI MASJID -SURJANI TOWN","SURJANI KDA", "4K CHOWRANGI","ALLAH WALI -NEW KARACHI","SINDHI HOTEL -NEW KARACHI","NALA STOP","UP SARAFA BAZAR","UP MOR","NAGAN CHOWRANGI","HAROON SHOPPING CENTER","SAKHI HASAN CHOWRANGI","NADRA MEGA CENTER -NORTH NAZIMABAD","FIVE STAR CHOWRANGI","HYDERI","KDA CHOWRANGI","BOARD OFFICE","NAZIMABAD NO 7","NAZIMABAD PETROL PUMP","GOLIMAR OLD","LASBELA","PATEL PARA","GURU MANDIR"] },
-    { type: "chinchi", number: "555",fare: 20,                   details: "Short Distance Ride", stops: ["SINDHI HOTEL -NEW KARACHI","NALA STOP","UP SARAFA BAZAR","UP MOR","NAGAN CHOWRANGI","HAROON SHOPPING CENTER","SAKHI HASAN CHOWRANGI","NADRA MEGA CENTER -NORTH NAZIMABAD","FIVE STAR CHOWRANGI","HYDERI","KDA CHOWRANGI","BOARD OFFICE","NAZIMABAD NO 7","NAZIMABAD PETROL PUMP","GOLIMAR OLD","LASBELA","PATEL PARA","GURU MANDIR"] },
-    { type: "chinchi", number: "786",fare: 20,                   details: "Short Distance Ride", stops: ["LYARI BASTI -TAISER TOWN", "KHUDA KI BASTI", "ABDULLAH MOR","SURJANI KDA","4K CHOWRANGI","2 MINUTE CHOWRANGI","BARA MARKET","POWER HOUSE CHOWRANGI","ROAD 4200-SALEEM CENTER","UP MOR","NAGAN CHOWRANGI","SHAFIQ MOR","SOHRAB GOTH","SAGHEER CENTER -F.B AREA","LUCKY ONE MALL","MOTI MAHAL","GULSHAN CHOWRANGI","NIPA"] },
-    { type: "chinchi", number: "7-D",fare: 20,                   details: "Short Distance Ride", stops: ["NORTH KARACHI SECTOR 7D (IQRA UNIVERSITY)", "ANDA MOR -NORTH KARACHI", "QALANDRIA","SAKHI HASAN CHOWRANGI","DC OFFICE CENTRAL","PEOPLES CHOWRANGI","PIYALA HOTEL","GULBERG CHOWRANGI","WATER PUMP","FAYYAZ PLAZA GULBERG BLOCK 18","LUCKY ONE MALL"] },
-    { type: "chinchi", number: "8",fare: 20,                     details: "Short Distance Ride", stops: ["PAHAR GANJ", "ASGHAR ALI SHAH CRICKET STADIUM", "KDA CHOWRANGI","ZIAUDDIN HOSPITAL -NORTH NAZIMABAD","MOOSA COLONY -GULBERG","KARIMABAD","AYESHA MANZIL","NASEERABAD","WATER PUMP","ANCHOLI","SOHRAB GOTH","AL ASIF SQUARE","JAMALI PULL","AHSANABAD"] },
-    { type: "chinchi", number: "A", fare: 20,                    details: "Short Distance Ride", stops: ["SADDAR", "MOBILE MARKET SADDAR", "NIPA CHOWRANGI"] },
-    { type: "chinchi", number: "A-1",fare: 20,                   details: "Short Distance Ride", stops: ["DISCO BAKERY", "MASKAN CHOWRANGI", "NIPA CHOWRANGI","GULSHAN CHOWRANGI"] },
-    { type: "chinchi", number: "A-18", fare: 0,                  details: "Short Distance Ride", stops: ["closed permanently"] },
-    { type: "chinchi", number: "AA1",fare: 20,                   details: "Short Distance Ride", stops: ["KORANGI 5", "KORANGI 4", "KORANGI 3","KORANGI 2½","KORANGI 1","NASIR PUMP","INDUS HOSPITAL -KORANGI","KORANGI CROSSING","QAYYUMABAD","MAZNOOR COLONY","BALUCH COLONY","TARIQ ROAD","JAIL CHOWRANGI","ESSA NAGRI","LIAQUATABAD No.10 -LALUKHET"] },
-    { type: "chinchi", number: "AS-1", fare: 20,                 details: "Short Distance Ride", stops: ["KORANGI 6","KORANGI 1","SHA FAISAL COLONY GATE","NATA KHAN","NIPA CHOWRANGI","NAGAN CHOWRANGI","UP MOR","4K CHOWRANGI"] },
-    { type: "chinchi", number: "B-1",fare: 20,                   details: "Short Distance Ride", stops: ["DAAK KHANA -LIAQUATABAD", "LIAQUATABAD No.10 -LALUKHET", "KARIMABAD","AYESHA MANZIL","NASEERABAD","WATER PUMP","ANCHOLI","SOHRAB GOTH","AL ASIF SQUARE","JAMALI PULL","ALLAH BUKSH VILLAGE(AHSANABAD)"] },
-    { type: "chinchi", number: "B-3", fare: 20,                  details: "Short Distance Ride", stops: ["NUMAISH CHOWRANGI", "JAIL CHOWRANGI", "NEW TOWN","MILLINNIUM MALL","JOHAR MOR","KAMRAN CHOWRANGI","MOSAMIYAT","SAFOORA"] },
-    { type: "chinchi", number: "B-9", fare: 20,                  details: "Short Distance Ride", stops: ["KORANGI 6","KORANGI 5","KORANGI 4"," KORANGI 3","KORANGI 2½","KORANGI 1","NASIR PUMP","INDUS HOSPITAL -KORANGI","KORANGI CROSSING ROAD"] },
-    { type: "chinchi", number: "D-13",fare: 20,                  details: "Short Distance Ride", stops: ["JUNGLE SCHOOL (BALDIA)","BISMILLAH CHOWK","BALDIA 19-D","MOHAJIR CAMP No.7","RASHEEDABAD","LABOR SQUARE -METROVILLE SITE","GCT COLLEGE MOR","SITE POLICE STATION","HABIB CHOWRANGI -METROVILLE","VALIKA","METRO MANGHOPIR STORE"," BANARAS"] },
-    { type: "chinchi", number: "D-22",fare: 20,                  details: "Short Distance Ride", stops: ["LYARI 50","LYARI 51","LYARI 36","KHUDA KI BASTI","ROZI GOTH","ABDULLAH MOR","SURJANI KDA","4K CHOWRANGI","2 MINUTE CHOWRANGI","POWER HOUSE CHOWRANGI","ROAD 4200 -SALEEM CENTER","UP MOR","NAGAN CHOWRANGI","SAKHI HASAN CHOWRANGI","JUMMAH BAZAR","5 STAR CHOWRANGI","HYDERI","KDA CHOWRANGI","BOARD OFFICE","NAZIMABAD PETROL PUMP","LIAQUATABAD No.10 -LALUKHET","DAAK KHANA -LIAQUATABAD","TEEN HATTI"] },
-    { type: "chinchi", number: "D-3", fare: 20,                  details: "Short Distance Ride", stops: ["GURU MANDIR","JAHANGIR ROAD","TEEN HATTI","DAAK KHANA -LIAQUATABAD","LIAQUATABAD No.10 -LALUKHET","AYESHA MANZIL","NASEERABAD -GULBERG TOWN","WATER PUMP","SOHRAB GOTH","AL ASIF SQUARE","JAMALI PULL","MAYMAR MOR","AHSANABAD","MUNAWAR CHOWRANGI- GULISTAN E JOHAR"] },
-    { type: "chinchi", number: "DOUBLE JHANDA",fare: 20,         details: "Short Distance Ride", stops: ["KHARADAR","KHAJOOR BAZAAR -LEE MARKET","LEE MARKET","OLD HAJI CAMP -TIMBER MARKET","GARDEN","LASBELA","TEEN HATTI"] },
-    { type: "chinchi", number: "F-12",fare: 20,                  details: "Short Distance Ride", stops: ["ALLAH WALI (NEW KARACHI)","SINDHI HOTEL (NEW KARACHI)","NALA STOP (NEW KARACHI)","GODHRA","SHAFIQ MOR","SOHRAB GOTH","WATER PUMP","AYESHA MANZIL","KARIMABAD","LIAQUATABAD No.10 -LALUKHET","TEEN HATTI"] },
-    { type: "chinchi", number: "FM",  fare: 20,                  details: "Short Distance Ride", stops: ["ABDULLAH MOR ", "HARI MASJID" , "SURJANI KDA ", "4K CHOWRANGI ", "MADIHA STOP ", "2 MINUTE CHOWRANGI ", "ROAD 2400-AISHA COMPLEX","POWER HOUSE CHOWRANGI","ROAD 4200-SALEEM CENTER","BARA MARKET","UP MOR","NAGAN CHOWRANGI","SHAFIQ MOR","AL NOOR","SOHRAB GOTH","SAGHEER CENTER -FB AREA","LUCKY ONE MALL","IMTIAZ MEGA (GULSHAN)","GULSHAN CHOWRANGI","NIPA","ALADN PARK","JOHAR MOR","MILLENNIUM MALL","ARMY PUBLIC SCHOOL","DRIGH ROAD","SHAH FAISAL COLONY GATE","SHAMA SHOPPING CENTER","MALIR HALT","MALIR 15"] },
-    { type: "chinchi", number: "FS-1",fare: 20,                  details: "Short Distance Ride", stops: ["L BLOCK ROAD -AZIZ NAGAR","SABZI CHOWK Rd -ORANGI TOWN","NISHAN E HAIDER -ORANGI TOWN","ZMC OFFICE ORANGI TOWN","ORANGI 5","ABDULLAH COLLEGE","BOARD OFFICE","KDA CHOWRANGI","HYDERI","SAKHI HASNA CHOWRANGI","NAGAN CHOWRANGI","UP MOR","ROAD 4200-SALEEM CENTER","POWER HOUSE CHOWRANGI","2 MINUTE CHOWRANGI","4K CHOWRANGI","ANARKALI SECTOR 6 -SURJANI TOWN"] },
-    { type: "chinchi", number: "G-2", fare: 20,                  details: "Short Distance Ride", stops: ["DAAK KHANA","LIAQUATABAD No.10 -LALUKHET","KARIMABAD","AYESHA MANZIL","NASEERABAD -GULBERG TOWN","WATER PUMP","ANCHOLI","SOHRAB GOTH","AL ASIF SQUARE","JAMALI PULL","MAYMAR MOR","NEW SABZI MANDI"] },
-    { type: "chinchi", number: "G-25", fare: 20,                 details: "Short Distance Ride", stops: ["GULSHAN CHOWRANGI","M.RAB MEDICAL CENTER","SHARAH-E-JAHANGIR Rd -FB AREA","MUKKA CHOWK","AYESHA MANZIL","TAHIR VILLA","LANDI KOTAL ROUNDABOUT","5 STAR CHOWRANGI"] },
-    { type: "chinchi", number: "G-7 CHINCHI", fare: 20,          details: "Short Distance Ride", stops: ["BABA MOR","AL HAMEED","RAHMANIA MOR","W-9 STOP","KHAWAJA AJMER NAGRI","BARADARI","DISCO MOR","UP MOR","NAGAN CHOWRANGI","SAKHI HASAN CHOWRANGI","SAREENA MOBILE MARKET","JUMMAH BAZAAR","FIVE STAR CHOWRANGI","HYDERI","KDA CHOWRANGI","BOARD OFFICE","ABDULLAH COLLEGE","PONE 5 ORANGI","QATAR MOR","JOHAR CHOWK","1-H BUS STOP","LIAQUAT CHOWK","ALTAF NAGAR","BISMILLAH CHOWK"] },
-    { type: "chinchi", number: "GM",     fare: 20,               details: "Short Distance Ride", stops: ["MALIR 15","MALIR HALT","TANK CHOWK","PINK RESIDENCY -MALIR CANTT","FALAKNAZ DYNASTY -LAWERS COLONY","RASHDI GOTH","MAGSI BROTHER CHOWK -GULISTAN-E-JOHAR","GULL CHOWK -GULISTAN-E-JOHAR","MOSAMIYAT","UNIVERSITY ROAD","KARACHI UNIVERSITY","NED UNIVERSITY","NIPA","GULSHAN CHOWRANGI","IMTIAZ MEGA STORE -GULSHAN","LUCKY ONE MALL","SAGHEER CENTER -FB AREA","SOHRAB GOTH","NAGAN CHOWRANGI","UP MOR","BABA MOR"] },
-    { type: "chinchi", number: "J-1",    fare: 20,               details: "Short Distance Ride", stops: ["GULSHAN GHAZI","FAQIR COLONY","BALDIA 8","BISMILLAH CHOWK","JUNGLE SCHOOL(BALDIA)","RUBI MOR","POLICE TRAINING CENTER SAEEDABAD","MACH MOR","BALDIA 4","BALDIA 3","BALDIA 2","SHERSHAH","MEEZAN HEAD OFFICE","GULBAI","AGRA TAJ COLONY","IC BRIDGE"] },
-    { type: "chinchi", number: "JF17",   fare: 20,               details: "Short Distance Ride", stops: ["KORANGI 5","KORANGI 4","KORANGI 3","KORANGI 2 1/2","KORANGI 1","NASIR JUMP","INDUS HOSPITAL -KORANGI","KORANGI CROSSING ROAD","QAYYUMABAD","MANZOOR COLONY","BALOCH COLONY","TARIQ ROAD","JAIL CHOWRANGI","ESSA NAGRI","LIAQUATABAD NO 10 -LALUKHET"] },
-    { type: "chinchi", number: "K-1",    fare: 20,               details: "Short Distance Ride", stops: ["COMONG SOON"] },
-    { type: "chinchi", number: "K-18", fare: 0,                  details: "Short Distance Ride", stops: ["closed permanently"] },
-    { type: "chinchi", number: "K-4",    fare: 20,               details: "Short Distance Ride", stops: ["KORANGI CROSSING ROAD","INDUS HOSPITAL -KORANGI","NASIR JUMP","KORANGI 1","KORANGI 2 1/2","KORANGI 3","KORANGI 4","KORANGI 5","KORANGI 6"] },
-    { type: "chinchi", number: "K-5",    fare: 20,               details: "Short Distance Ride", stops: ["MAKKAH HOTEL -SEC 5A1 NORTH KARACHI","4K CHOWRANGI","MADIHA STOP","2 MINUTE CHOWRANGI","ROAD 2400-AISHA COMPLEX","BARA MARKET","POWER HOUSE CHOWRANGI","ROAD 4200-SALEEM CENTER","UP MOR","NAGAN CHOWRANGI","ERUM SHOPPING","SAKHI HASAN CHOWRANGI","JUMMAH BAZAAR","NADRA MEGA CENTER -NORTH NAZIMABAD","FIVE STAR CHOWRANGI","HYDERI","BOARD OFFICE","NAZIMABAD PETROL PUMP","ANNU BHAI PARK","ENQUIRY OFFICE","NAZIMABAD NO 1","SANITARY MARKET","LASBELA","PATEL PARA"] },
-    { type: "chinchi", number: "K-6",    fare: 20,               details: "Short Distance Ride", stops: ["KORANGI CROSSING ROAD","INDUS HOSPITAL -KORANGI","NASIR JUMP","KORANGI 1","KORANGI 2 1/2","KORANGI 3","KORANGI 4","KORANGI 5","KORANGI 6"] },
-    { type: "chinchi", number: "K-86",   fare: 20,               details: "Short Distance Ride", stops: ["LYARI 50","LYARI 51","LYARI 36","KHUDA KI BASTI","ROZI GOTH","ABDULLAH MOR","SURJANI KDA","4K CHOWRANGI","2 MINUTE CHOWRANGI","POWER HOUSE CHOWRANGI","ROAD 4200 -SALEEM CENTER","UP MOR","NAGAN CHOWRANGI","SAKHI HASAN CHOWRANGI","PEOPLE CHOWRANGI","GULBERG CHOWRANGI","WATER PUMP","AISHA MANZIL","KARIMABAD","LIAQUATABAD NO 10 -LALUKHET","DAAK KHANA -LIAQUATABAD","TEEN HATTI","GURU MANDIR"] },
-    { type: "chinchi", number: "KARACHI KING",fare: 20,          details: "Short Distance Ride", stops: ["KORANGI 5","KORANGI 4","KORANGI 3","KORANGI 2 1/2","KORANGI 1","NASIR JUMP","INDUS HOSPITAL -KORANGI","KORANGI CROSSING ROAD","QAYYUMABAD","MANZOOR COLONY","BALOCH COLONY","TARIQ ROAD","JAIL CHOWRANGI","ESSA NAGRI","LIAQUATABAD NO 10 -LALUKHET"] },
-    { type: "chinchi", number: "M-1",  fare: 20,                 details: "Short Distance Ride", stops: ["JAMALI PULL","SACHAL MOR","PUNJAB ADDA","AL ASIF SQUARE","SOHRAB GOTH","WATER PUMP","AYESHA MANZIL","KARIMABAD","LIAQUATABAD NO. 10 LALUKHET","DAAK KHANA -LIAQUATABAD","TEEN HATTI","JAHANGIR ROAD","GURU MANDIR"] },
-    { type: "chinchi", number: "M-10", fare: 20,                 details: "Short Distance Ride", stops: ["LYARI BASTI","AHSANABAD","MAYMAR MOR","JAMALI PULL","AL ASIF SQUARE","GULSHAN CHOWRANGI","NIPA"] },
-    { type: "chinchi", number: "M-18",   fare: 20,               details: "Short Distance Ride", stops: ["CHUNGI GHAZI","SAIMA ARABIAN VILLAS","BABA MOR","AL HAMEED","W-9 STOP","KHAWAJA AJMER NAGRI","BARADARI","DISCO MOR","UP MOR","NAGAN CHOWRANGI","SHAFIQ MOR"] },
-    { type: "chinchi", number: "M-22", fare: 20,                 details: "Short Distance Ride", stops: ["KORANGI 5","KORANGI 4","KORANGI 3","KORANGI 2 1/2","KORANGI 1","NASIR JUMP","INDUS HOSPITAL -KORANGI","KORANGI CROSSING ROAD","QAYYUMABAD","MANZOOR COLONY","BALOCH COLONY","TARIQ ROAD","JAIL CHOWRANGI","ESSA NAGRI","LIAQUATABAD NO.10 -LALUKHET"] },
-    { type: "chinchi", number: "M-5",  fare: 20,                 details: "Short Distance Ride", stops: ["EXPO CENTER"] },
-    { type: "chinchi", number: "M-55", fare: 20,                 details: "Short Distance Ride", stops: ["LYARI BASTI","ABDULLAH MOR","HARI MASJID","SURJANI KDA","4K CHOWRANGI","MADIHA STOP","2 MINUTE CHOWRANGI","ROAD 2400-AISHA COMPLEX","POWER HOUSE CHOWRANGI","ROAD 4200-SALEEM CENTER","UP MOR","NAGAN CHOWRANGI","HAROON SHOPPING CENTER","SAKHI HASAN CHOWRANGI","JUMMAH BAZAAR","NADRA MEGA CENTER","FIVE STAR CHOERANGI","HYDERI","KDA CHOWRANGI","BOARD OFFICE","NAZIMABAD PETROL PUMP","GOLIMAR OLD","LASBELA","GURU MANDIR","SOLDIER BAZAAR","SADDAR"] },
-    { type: "chinchi", number: "M-7",  fare: 20,                 details: "Short Distance Ride", stops: ["YAROO KHAN GOTH","ALLAH WALI","KALA SCHOOL BUS STOP","SINDHI HOTEL","NALA STOP","GODHRA","SHAFIQ MOR","SOHRAB GOTH","LUCKY ONE MALL","GULSHAN CHOWRANGI","NIPA","ALADIN PARK","JOHAR MOR","MILLENNIUM MALL","DRIGH ROAD","CHOTTA GATE -SHAH FAISAL COLONY","SHAMA SHOPPING CENTER","BAGH-E-KORANGI -SECTOR 10","SINGER CHOWRANGI","K AREA -SHERABAD COLONY","KORANGI 5","KORANGI 6","CHIRAGH HOTEL -SECTOR 36E LANDHI TOWN","LANDHI 4","BABAR MARKET","89 LANDHI Rd"] },
-    { type: "chinchi", number: "M-9",  fare: 20,                 details: "Short Distance Ride", stops: ["QAYYUMABAD","KPT INTERCHANGE","IQRA UNIVERSITY -DEFENCE","MANZOOR COLONY","BALOCH COLONY","SHAHEED-E-MILLAT","NAHEED SUPER MARKET -MAIN SHAHEED-E-MILLAT Rd","TARIQ ROAD","NEW TOWN","JAIL CHOWRANGI","HASAN SQUARE","OLD SABZI MANDI","NIPA"] },
-    { type: "chinchi", number: "MK-081",fare: 20,                details: "Short Distance Ride", stops: ["COMING SOON"] },
-    { type: "chinchi", number: "N-1",   fare: 20,                details: "Short Distance Ride", stops: ["NIPA","GULSHAN CHOWRANGI","DISCO BAKERY","MASKAN CHOWRANGI","ABUL HASAN ISPHANI ROAD","PARADISE BAKERY","KANEEZ FATIMA SOCEITY -GULZAR-E-HIJRI"] },
-    { type: "chinchi", number: "N-A(BALDIA)",fare: 20,           details: "Short Distance Ride", stops: ["JUNGLE SCHOOL (BALDIA)","PARESHAN CHOWK -FAQIR COLONY Rd","FAQIR COLONY","MOMINABAD -ORANGI TOWN","METROVILLE KHYBER GATE","FRONTIER MOR METROVILLE","SITE POLICE STATION","GHANI CHOWRANGI","SHERSHAH"] },
-    { type: "chinchi", number: "N-55",      fare: 20,            details: "Short Distance Ride", stops: ["LYARI BASTI","KHUDA KI BASTI","ABDULLAH MOR","SURJANI KDA","4K CHOWRANGI","MADIHA STOP","2 MINUTE CHOWRANGI","ROAD 2400-AISHA COMPLEX","POWER HOUSE CHOWRANGI","ROAD 4200-SALEEM CENTER","UP MOR","NAGAN CHOWRANGI","HAROON SHOPPING CENTER","SAKHI HASAN CHOWRANGI","JUMMAH BAZAAR","NADRA MEGA CENTER -NORTH NAZIMABAD","FIVE STAR CHOWRANGI","BOARD OFFICE","ABDULLAH COLLEGE","BANARAS","PONE 5 CHOWRANGI","ORANGI 5","GULSHAN-E-BIHAR","KHAIRABAD -GULSHAN-E-ZIA"] },
-    { type: "chinchi", number: "N-91",  fare: 20,                details: "Short Distance Ride", stops: ["NIPA","ALADIN PARK","JOHAR MOR","PERFUME CHOWK","JOHAR CHOWRANGI"] },
-    { type: "chinchi", number: "NASEEB", fare: 20,               details: "Short Distance Ride", stops: ["KORANGI 5","KORANGI 4","KORANGI 3","KORANGI 2 1/2","KORANGI 1","NASIR JUMP","INDUS HOSPITAL -KORANGI","KORANGI CROSSING ROAD","QAYYUMABAD","MANZOOR COLONY","BALOCH COLONY","TARIQ ROAD","JAIL CHOWRANGI","ESSA NAGRI","LIAQUATABAD NO.10 -LALUKHET"] },
-    { type: "chinchi", number: "ND1",    fare: 20,               details: "Short Distance Ride", stops: ["UMER GOTH","ACHANAK HOTEL","W-9 STOP","KHAWAJA AJMER NAGRI","BARADARI","DISCO MOR","UP MOR","NAGAN CHOWRANGI","ERUM SHOPPING","SAREENA MOBILE MARKET","PEOPLE CHOWRANGI","GULBERG CHOWRANGI","WATER PUMP","NASEERABAD -GULBERG TOWN","AYESHA MANZIL","KARIMABAD","LIAQUATABAD No.10 -LALUKHET","DAAK KHANA -LIAQUATABAD"] },
-    { type: "chinchi", number: "P-1",    fare: 20,               details: "Short Distance Ride", stops: ["COMING SOON"] },
-    { type: "chinchi", number: "RAZAQ",  fare: 20,               details: "Short Distance Ride", stops: ["KORANGI 5","KORANGI 4","KORANGI 3","KORANGI 2 1/2","KORANGI 1","NASIR JUMP","INDUS HOSPITAL -KORANGI","KORANGI CROSSING ROAD","QAYYUMABAD","MANZOOR COLONY","BALOCH COLONY","TARIQ ROAD","JAIL CHOWRANGI","ESSA NAGRI","LIAQUATABAD NO.10 -LALUKHET"] },
-    { type: "chinchi", number: "R-S",    fare: 20,               details: "Short Distance Ride", stops: ["JOHAR CHOWRANGI"] },
-    { type: "chinchi", number: "S-2",    fare: 20,               details: "Short Distance Ride", stops: ["DAAK KHANA -LIAQUATABAD","LIAQUATABAD No.10 -LALUKHET","KARIMABAD","MOOSA COLONY","ZIAUDDIN HOSPITAL (NORTH NAZIMABAD)","LANDI KOTAL CHOWRANGI","PEOPLES CHOWRANGI","CAFE PIYALA","GULBERG CHOWRANGI","AL NOOR"] },
-    { type: "chinchi", number: "S-7",    fare: 20,               details: "Short Distance Ride", stops: ["KHAWAJA AJMER NAGRI","ANDA MOR -NORTH KARACHI","QALANDARIA CHOWK","SAKHI HASAN CHOWRANGI","PEOPLES CHOWRANGI","KARACHI MEDICAL AND DENTAL COLLEGE","ZIAUDDIN HOSPITAL (NORTH NAZIMABAD)","KARIMABAD","LIAQUATABAD NO 10 -LALUKHET","DAAK KHANA -LIAQUATABAD","TEEN HATTI"] },
-    { type: "chinchi", number: "S-K",    fare: 20,               details: "Short Distance Ride", stops: ["AL ASIF SQUARE","SOHRAB GOTH","ANCHOLI","WATER PUMP","GULBERG CHOWRANGI","PIYALA HOTEL","DC OFFICE CENTRAL","SAKHI HASAN CHOWRANGI","JUMMAH BAZAAR","FIVE STAR CHOWRANGI","HYDERI","BOARD OFFICE","ABDULLAH COLLEGE","BANARAS","METRO CINEMA","ORANGI 5","NADRA CENTER -ORANGI TOWN","ORANGI 10","KHAYABAN-E-HAFIZ -DHA","ITTEHAD TOWN"] },
-    { type: "chinchi", number: "SULTAN", fare: 20,               details: "Short Distance Ride", stops: ["LIAQUATABAD NO 10 -LALUKHET","ESSA NAGRI","JAIL CHOWRANGI","TARIQ ROAD","BALOCH COLONY","MANZOOR COLONY","QAYYUMABAD","KORANGI CROSSING ROAD","INDUS HOSPITAL -KORANGI","NASIR JUMP","KORANGI 1","KORANGI 2 1/2","KORANGI 3","KORANGI 4","LANDHI 6","LANDHI 5","LANDHI 4","LANDHI 3","LANDHI 2","LANDHI 1","89 LANDHI ROAD","DAWOOD CHOWRANGI","KORANGI 5"] },
-    { type: "chinchi", number: "T-10",   fare: 20,               details: "Short Distance Ride", stops: ["DAAK KHANA -LIAQUATABAD","LIAQUATABAD NO 10 -LALUKHET","MEENA BAZAAR KARIMABAD","KARIMABAD","MOOSA COLONY","HYDERI","FIVE STAR CHOWRANGI","JUMMAH BAZAAR","SAKHI HASAN CHOWRANGI","HAROON SHOPPING CENTER","NAGAN CHOWRANGI","UP MOR","POWER HOUSE CHOWRANGI","2 MINUTE CHOWRANGI","MADIHA STOP","4K CHOWRANGI","KARIMI CHOWRANGI","SURJANI KDA","ABDULLAH MOR","SURJANI SECTOR 7A"] },
-    { type: "chinchi", number: "T-11",   fare: 20,               details: "Short Distance Ride", stops: ["DAAK KHANA -LIAQUATABAD","LIAQUATABAD NO 10 -LALUKHET","NAZIMABAD PETROL PUMP","HYDERI","FIVE STAR CHOWRANGI","JUMMAH BAZAAR","SAKHI HASAN CHOWRANGI","HAROON SHOPPING CENTER","NAGAN CHOWRANGI","UP MOR","POWER HOUSE CHOWRANGI","2 MINUTE CHOWRANGI","MADIHA STOP","4K CHOWRANGI","KARIMI CHOWRANGI","SURJANI KDA","ABDULLAH MOR","SURJANI SECTOR 7A"] },
-    { type: "chinchi", number: "T-99",   fare: 20,               details: "Short Distance Ride", stops: ["MANSOOR NAGAR","ISLAM CHOWK -ORANGI TOWN","NISHAN-E-HYDER -ORANGI TOWN","ZMC OFFICE -ORANGI TOWN","ORANGI 5","METRO CINEMA","ABDULLAH COLLEGE","BOARD OFFICE","KDA CHOWRANGI","HYDERI","FIVE STAR CHOWRANGI","SAKHI HASAN CHOWRANGI","HAROON SHOPPING CENTER","NAGAN CHOWRANGI","UP MOR","ROAD 4200-SALEEM CENTER","POWER HOUSE CHOWRANGI","BARA MARKET","2 MINUTE CHOWRANGI","4K CHOWRANGI","SURJANI KDA","HARI MASJID","ABDULLAH MOR"] },
-    { type: "chinchi", number: "U-5",    fare: 20,               details: "Short Distance Ride", stops: ["MACHCHI MARKET","POWER HOUSE CHOWRANGI","ROAD 4200-SALEEM CENTER","UP MOR","NAGAN CHOWRANGI","HAROON SHOPPING CENTER","SAKHI HASAN CHOWRANGI","JUMMAH BAZAAR","NADRA MEGA CENTER","HYDERI","FIVR STAR CHOWRANGI","KDA CHOWRANGI"] },
-    { type: "chinchi", number: "V-1",    fare: 20,               details: "Short Distance Ride", stops: ["BABA MOR","AL HAMEED","RAHMANIA MOR","W-9 STOP","KHAWAJA AJMER NAGRI","BARADARI BUS STOP","DISCO MOR","UP MOR"] },
-    { type: "chinchi", number: "W-1",    fare: 20,               details: "Short Distance Ride", stops: ["COMING SOON"] },
-    { type: "chinchi", number: "W-11 CHINCHI",fare: 20,          details: "Short Distance Ride", stops: ["GULSHAN GHAZI","BISMILLAH CHOWK","JUNGLE SCHOOL (BALDIA)","BALDIA 19-D","BALDIA 7 GRAVEYARD","RASHEEDABAD","GCT COLLEGE MOR","GHANI CHOWRANGI","HAROONABAD","SEIMENS CHOWRANGI","HABIB BANK CHOWRANGI","NAZIMABAD NO.1","NAZIMABAD PETROL PUMP","LIAQUATABAD NO.10 -LALUKHET","DAAK KHANA"] },
-    { type: "chinchi", number: "W-86", fare: 20,                 details: "Short Distance Ride", stops: ["LYARI BASTI","KHUDA KI BASTI","ABDULLAH MOR","SURJANI KDA","4K CHOWRANGI","2 MINUTE CHOWRANGI","POWER HOUSE CHOWRANGI","ROAD 4200-SALEEM CENTER","UP MOR","NAGAN CHOWRANGI","HAROON SHOPPING CENTER","SAKHI HASAN CHOWRANGI","DC OFFICE CENTRAL","WATER PUMP","AYESHA MANZIL","GULBERG CHOWRANGI","MEENA BAZAAR KARIMABAD","KARIMABAD","LIAQUATABAD NO.10 -LALUKHET","TEEN HATTI"] },
-    { type: "chinchi", number: "X-2",  fare: 20,                 details: "Short Distance Ride", stops: ["ICI BRIDGE","AGRA TAJ COLONY","GULBAI","MEEZAN HEAD OFFICE","SHERSHAH","BALDIA 2","BALDIA 3","BALDIA 4","MACH MOR","NAVAL COLONY","YOUSUF GOTH"] },
-    { type: "chinchi", number: "Z",  fare: 20,                   details: "Short Distance Ride", stops: ["ITTEHAD TOWN","EID GAH MOR ORANGI","L BLOCK AZIZ NAGAR","ORANGI 5","DABBA MOR","ISLAM CHOWK"] },
-    { type: "chinchi", number: "Z-4",  fare: 20,                 details: "Short Distance Ride", stops: ["SHERSHAH","GHANI CHOWRANGI","SEIMENS CHOWRANGI","HABIB BANK CHOWRANGI","HAROONABAD"] }
-    ];
-
-    type RoutesProps = Record<string, never>;
+type RoutesProps = Record<string, never>;
 
 const Routes: React.FC<RoutesProps> = () => {
-    const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
-    const [isModalOpen, setModalOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [sortBy, setSortBy] = useState<string | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-    const openModal = (route: Route) => {
-        setSelectedRoute(route);
-        setModalOpen(true);
-    };
+  const routesPerPage = 20;
 
-    const closeModalAction = () => {
-        setSelectedRoute(null);
-        setModalOpen(false);
-    };
+  const openModal = (route: Route) => {
+    setSelectedRoute(route);
+    setModalOpen(true);
+  };
 
-    const filteredRoutes = useMemo(() => {
-        return routes.filter(
-            (route) =>
-                route.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                route.details.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                route.stops.some((stop) => stop.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-    }, [searchTerm]);
+  const closeModalAction = () => {
+    setSelectedRoute(null);
+    setModalOpen(false);
+  };
 
-    const sortedRoutes = useMemo(() => {
-        if (!sortBy) return filteredRoutes;
-        return filteredRoutes.filter(route => route.type === sortBy);
-    }, [filteredRoutes, sortBy]);
-
-    return (
-        <div className="p-6 max-w-7xl mx-auto">
-            <div className="relative mb-8">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-5 h-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </span>
-                <input
-                    type="text"
-                    placeholder="Search by route number, details, or stops..."
-                    aria-label="Search routes"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full p-4 pl-12 pr-12 border border-gray-300 rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-200"
-                />
-                {searchTerm && (
-                    <button
-                        onClick={() => setSearchTerm("")}
-                        className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-gray-700"
-                        aria-label="Clear search"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-6 h-6"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                )}
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
-                <motion.button
-                    onClick={() => setSortBy("brts")}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className={`px-4 py-2 rounded-full text-sm sm:text-base font-medium ${
-                        sortBy === "brts"
-                            ? "bg-blue-600 text-white shadow-lg"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                >
-                    BRT
-                </motion.button>
-                <motion.button
-                    onClick={() => setSortBy("people-bus")}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className={`px-4 py-2 rounded-full text-sm sm:text-base font-medium ${
-                        sortBy === "people-bus"
-                            ? "bg-blue-600 text-white shadow-lg"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                >
-                    People Bus
-                </motion.button>
-                <motion.button
-                    onClick={() => setSortBy("local-bus")}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className={`px-4 py-2 rounded-full text-sm sm:text-base font-medium ${
-                        sortBy === "local-bus"
-                            ? "bg-blue-600 text-white shadow-lg"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                >
-                    Local Bus
-                </motion.button>
-                <motion.button
-                    onClick={() => setSortBy("chinchi")}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className={`px-4 py-2 rounded-full text-sm sm:text-base font-medium ${
-                        sortBy === "chinchi"
-                            ? "bg-blue-600 text-white shadow-lg"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                >
-                    chinchi
-                </motion.button>
-                <motion.button
-                    onClick={() => setSortBy(null)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className="px-4 py-2 rounded-full text-sm sm:text-base font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 shadow-sm"
-                >
-                    Clear Sort
-                </motion.button>
-            </div>
-
-            {sortedRoutes.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {sortedRoutes.map((route, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            whileHover={{ scale: 1.03, boxShadow: "0px 8px 20px rgba(0,0,0,0.15)" }}
-                            whileTap={{ scale: 0.98 }}
-                            className="cursor-pointer border border-gray-200 p-6 rounded-xl transition-all bg-white"
-                            onClick={() => openModal(route)}
-                        >
-                            <div className="flex items-center space-x-4">
-                                <Image
-                                    src={iconMapping[route.type]}
-                                    alt={route.type}
-                                    width={48}
-                                    height={48}
-                                    className="object-contain"
-                                />
-                                <div>
-                                    <h3 className="text-xl font-semibold text-gray-800">{route.number}</h3>
-                                    <p className="text-gray-500">{route.details}</p>
-                                </div>
-                            </div>
-                            <div className="mt-4 text-sm text-gray-500">
-                                {route.stops.length} stops&nbsp;&bull;&nbsp;Fare: Rs {route.fare}
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            ) : (
-                <div className="text-center text-gray-600 py-12">No routes found.</div>
-            )}
-
-            <Modal
-                isOpen={isModalOpen}
-                onCloseAction={closeModalAction}
-                route={
-                    selectedRoute
-                        ? { ...selectedRoute, fare: { min: selectedRoute.fare || 0, max: selectedRoute.fare || 0 } }
-                        : null
-                }
-            />
-        </div>
+  // 🔍 Filtered Routes
+  const filteredRoutes = useMemo(() => {
+    return routes.filter(
+      (route) =>
+        route.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        route.details.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        route.stops.some((stop) =>
+          stop.toLowerCase().includes(searchTerm.toLowerCase())
+        )
     );
-}
+  }, [searchTerm]);
+
+  // 🔢 Sorted Routes
+  const sortedRoutes = useMemo(() => {
+    if (!sortBy) return filteredRoutes;
+    return filteredRoutes.filter((route) => route.type === sortBy);
+  }, [filteredRoutes, sortBy]);
+
+  // 📄 Pagination logic
+  const totalPages = Math.ceil(sortedRoutes.length / routesPerPage);
+  const startIndex = (currentPage - 1) * routesPerPage;
+  const currentRoutes = sortedRoutes.slice(
+    startIndex,
+    startIndex + routesPerPage
+  );
+
+  const handlePrevPage = () =>
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+
+  const handleNextPage = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* 🔍 Search */}
+      <div className="relative mb-8">
+        <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </span>
+        <input
+          type="text"
+          placeholder="Search by route number, details, or stops..."
+          aria-label="Search routes"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // reset pagination
+          }}
+          className="w-full p-4 pl-12 pr-12 border border-gray-300 rounded-full shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-200"
+        />
+        {searchTerm && (
+          <button
+            onClick={() => setSearchTerm("")}
+            className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-gray-700"
+            aria-label="Clear search"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* 🔽 Sort Buttons */}
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+        {["brts", "people-bus", "local-bus", "chinchi", "EV-bus"].map((type) => (
+          <motion.button
+            key={type}
+            onClick={() => {
+              setSortBy(sortBy === type ? null : type);
+              setCurrentPage(1);
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className={`px-4 py-2 rounded-full text-sm sm:text-base font-medium ${
+              sortBy === type
+                ? "bg-blue-600 text-white shadow-lg"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            {type.replace("-", " ").toUpperCase()}
+          </motion.button>
+        ))}
+        <motion.button
+          onClick={() => {
+            setSortBy(null);
+            setCurrentPage(1);
+          }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="px-4 py-2 rounded-full text-sm sm:text-base font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 shadow-sm"
+        >
+          CLEAR SORT
+        </motion.button>
+      </div>
+
+      {/* 🚌 Routes Grid */}
+      {currentRoutes.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {currentRoutes.map((route, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{
+                  scale: 1.03,
+                  boxShadow: "0px 8px 20px rgba(0,0,0,0.15)",
+                }}
+                whileTap={{ scale: 0.98 }}
+                className="cursor-pointer border border-gray-200 p-6 rounded-xl transition-all bg-white"
+                onClick={() => openModal(route)}
+              >
+                <div className="flex items-center space-x-4">
+                  <Image
+                    src={iconMapping[route.type]}
+                    alt={route.type}
+                    width={48}
+                    height={48}
+                    className="object-contain"
+                  />
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-800">
+                      {route.number}
+                    </h3>
+                    <p className="text-gray-500">{route.details}</p>
+                  </div>
+                </div>
+                <div className="mt-4 text-sm text-gray-500">
+                  {route.stops.length} stops&nbsp;&bull;&nbsp;Fare: Rs{" "}
+                  {route.fare}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* 📜 Pagination Controls */}
+          <div className="flex justify-center items-center mt-10 gap-4">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className={`px-5 py-2 rounded-full font-medium ${
+                currentPage === 1
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              Previous
+            </button>
+
+            <span className="text-gray-600">
+              Page <b>{currentPage}</b> of <b>{totalPages}</b>
+            </span>
+
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className={`px-5 py-2 rounded-full font-medium ${
+                currentPage === totalPages
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="text-center text-gray-600 py-12">No routes found.</div>
+      )}
+
+      {/* 🔳 Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onCloseAction={closeModalAction}
+        route={
+          selectedRoute
+            ? {
+                ...selectedRoute,
+                fare: selectedRoute.fare || 0,
+              }
+            : null
+        }
+      />
+    </div>
+  );
+};
 
 export default Routes;
-
-
