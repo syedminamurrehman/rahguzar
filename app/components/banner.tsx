@@ -1,6 +1,5 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
 import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform } from 'framer-motion';
 import { 
   AlertTriangle, 
@@ -17,8 +16,8 @@ import {
   FileText
 } from 'lucide-react';
 import { RiGovernmentLine } from "react-icons/ri";
-import { FaShieldAlt, FaExclamationTriangle } from "react-icons/fa";
-import { CiCalendar, CiViewList } from 'react-icons/ci';
+import {  FaExclamationTriangle } from "react-icons/fa";
+import {  CiViewList } from 'react-icons/ci';
 
 type NotificationVariant = 'warning' | 'info' | 'error' | 'success';
 type NotificationPosition = 'top' | 'bottom' | 'inline';
