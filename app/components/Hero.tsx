@@ -6,106 +6,143 @@ import BubbleAnimation from "./bubbles";
 export default function Hero() {
   return (
     <motion.section
-      initial={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: -40 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: "easeInOut" }}
-      className="min-h-screen flex flex-col justify-center items-center text-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-16 px-8 md:px-32 overflow-hidden relative"
+      transition={{ duration: 1, ease: "easeOut" }}
+      className="relative flex flex-col justify-center items-center text-center min-h-screen overflow-hidden bg-gradient-to-br from-blue-700 via-indigo-800 to-purple-900 text-white px-6 md:px-24 py-20"
     >
-      {/* Animated Background Bubbles */}
-      <BubbleAnimation bubbleCount={7} />
+      {/* 🌌 Floating Blast Bubbles */}
+      <BubbleAnimation bubbleCount={12} />
 
+      {/* 🎇 Moving Light Overlays */}
       <motion.div
-        className=" transition duration-300 relative z-10 cursor-pointer"
-        whileHover={{ scale: 1.1, rotate: [0, 10, -10, 0] }}
-        transition={{ duration: 0.3 }}
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(255,255,255,0.07),_transparent_70%)]"
+        animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.06),_transparent_75%)]"
+        animate={{ backgroundPosition: ["100% 100%", "0% 0%"] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* ✨ Animated Glow Aura behind Logo */}
+      <motion.div
+        className="absolute w-[28rem] h-[28rem] bg-gradient-to-r from-cyan-400/25 to-blue-500/20 rounded-full blur-3xl"
+        animate={{
+          scale: [1, 1.15, 1],
+          opacity: [0.3, 0.6, 0.3],
+        }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* 🚍 Logo */}
+      <motion.div
+        className="relative z-10 cursor-pointer"
+        whileHover={{
+          scale: 1.1,
+          rotate: [0, 6, -6, 0],
+          filter: "drop-shadow(0 0 25px rgba(0,200,255,0.6))",
+        }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
       >
         <Image
           src="/images/route.png"
           alt="RahGuzar Logo"
-          width={140}
-          height={140}
-          className="rounded-full"
+          width={150}
+          height={150}
+          className="rounded-full select-none"
+          priority
         />
       </motion.div>
-      <motion.h1
-        className="text-4xl md:text-6xl font-extrabold mb-4 drop-shadow-md relative z-10 cursor-pointer"
-        variants={{
-          hidden: { opacity: 0, y: -30 },
-          visible: { opacity: 1, y: 0 },
-        }}
-        initial="hidden"
-        animate="visible"
-        whileHover={{ scale: 1.05, textShadow: "4px 4px 6px rgba(0,0,0,0.7)" }}
-        transition={{ duration: 0.3, type: "spring", stiffness: 120 }}
-        style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.5)" }}
-      >
-        Navigate with Ease
-      </motion.h1>
-      <motion.p
-        className="text-xl md:text-2xl mt-4 italic font-medium drop-shadow-sm relative z-10 cursor-pointer"
-        variants={{
-          hidden: { opacity: 0, y: 30 },
-          visible: { opacity: 1, y: 0 },
-        }}
-        initial="hidden"
-        animate="visible"
-        whileHover={{ scale: 1.03, color: "#a0aec0" }}
-        transition={{ duration: 0.3, type: "spring", stiffness: 120 }}
-        style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}
-      >
-Jahan Manzil, Wahan Raasta!
 
-</motion.p>
+      {/* 🌠 Text Block with Glass Effect */}
       <motion.div
-        className="mt-12 relative z-10"
-        variants={{
-          hidden: { opacity: 0, y: 50 },
-          visible: { opacity: 1, y: 0 },
-        }}
-        initial="hidden"
-        animate="visible"
+        className="relative z-10 mt-8 backdrop-blur-sm bg-white/5 px-6 md:px-12 py-6 rounded-2xl border border-white/10"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.2, duration: 1 }}
+      >
+        <motion.h1
+          className="text-5xl md:text-7xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-white to-purple-200 drop-shadow-lg leading-tight md:leading-[1.15] overflow-visible"
+          whileHover={{
+            scale: 1.05,
+            textShadow: "0 0 25px rgba(255,255,255,0.7)",
+          }}
+        >
+          Navigate with Ease
+        </motion.h1>
+
+        <motion.p
+          className="text-lg md:text-2xl italic font-medium text-gray-100"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+          whileHover={{ scale: 1.05, color: "#E5F2FF" }}
+        >
+          Jahan Manzil, Wahan Raasta!
+        </motion.p>
+      </motion.div>
+
+      {/* 🧭 CTA Button */}
+      <motion.div
+        className="relative z-10 mt-10"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.8 }}
       >
         <motion.button
-          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-purple-600 hover:to-blue-500 text-white font-bold py-3 px-12 rounded-full shadow-md hover:shadow-xl transition duration-300"
-          whileHover={{ scale: 1.1, boxShadow: "0 6px 10px rgba(0,0,0,0.4)" }}
+          className="relative font-semibold text-lg px-10 py-4 rounded-full bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 shadow-lg overflow-hidden group"
+          whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          style={{ boxShadow: "0 4px 6px rgba(0,0,0,0.3)" }}
         >
-          Start Exploring
+          <span className="relative z-10">Start Exploring</span>
+          <motion.span
+            className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-gradient-to-r from-cyan-400/40 via-blue-500/40 to-purple-600/40 blur-xl"
+            initial={{ scale: 0 }}
+            whileHover={{ scale: 1.6, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+          />
         </motion.button>
       </motion.div>
+
+      {/* 📘 Learn More Link */}
       <motion.div
         className="mt-6 relative z-10"
-        variants={{
-          hidden: { opacity: 0, y: 50 },
-          visible: { opacity: 1, y: 0 },
-        }}
-        initial="hidden"
-        animate="visible"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 1 }}
       >
         <motion.a
           href="#"
-          className="text-white hover:text-gray-300 transition duration-300 hover:scale-110 inline-flex items-center"
-          whileHover={{ x: 5 }}
-          transition={{ type: "spring", stiffness: 300 }}
+          className="inline-flex items-center gap-2 text-sm md:text-base font-medium text-white/80 hover:text-white transition-all"
+          whileHover={{ x: 6 }}
         >
           Learn More
           <svg
-            className="w-4 h-4 ml-2"
+            className="w-5 h-5"
             fill="none"
             stroke="currentColor"
+            strokeWidth="2"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M9 5l7 7-7 7"
-            ></path>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </motion.a>
+      </motion.div>
+
+      {/* ⬇ Scroll Hint */}
+      <motion.div
+        className="absolute bottom-10 flex flex-col items-center gap-2 text-white/70"
+        animate={{ y: [0, 10, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity }}
+      >
+        <span className="text-xs tracking-widest">Scroll Down</span>
+        <motion.div
+          className="w-[2px] h-6 rounded-full bg-gradient-to-b from-white/80 to-transparent"
+          animate={{ opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        />
       </motion.div>
     </motion.section>
   );
