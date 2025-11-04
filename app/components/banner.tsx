@@ -158,8 +158,8 @@ function NotificationBanner({
   const [expandedRoads, setExpandedRoads] = useState<Record<number, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRoads, setFilteredRoads] = useState<BannedRoad[]>(BANNED_ROADS);
-  const [isDragging, setIsDragging] = useState(false);
-  
+  // const [, setIsDragging] = useState(false);
+
   const bannerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const controls = useAnimation();
@@ -303,22 +303,19 @@ function NotificationBanner({
     onRoadClick?.(road);
   }, [onRoadClick]);
 
-  const handleDragStart = () => {
-    setIsDragging(true);
-  };
+  // const handleDragStart = () => {
+  //   setIsDragging(true);
+  // };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    if (dragX.get() < -80) {
-      handleClose();
-    } else {
-      dragX.set(0);
-    }
-  };
+  // const handleDragEnd = () => {
+  //   setIsDragging(false);
+  //   if (dragX.get() < -80) {
+  //     handleClose();
+  //   } else {
+  //     dragX.set(0);
+  //   }
+  // };
 
-  const focusSearchInput = () => {
-    searchInputRef.current?.focus();
-  };
 
   const style = variantStyles[variant];
   const posStyle = positionStyles[position];
@@ -443,8 +440,8 @@ function NotificationBanner({
         drag={showCloseButton && !isExpanded ? "x" : false}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.1}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
+        // onDragStart={handleDragStart}
+        // onDragEnd={handleDragEnd}
         dragDirectionLock
         onDrag={(_, info) => {
           if (info.offset.x < 0) {
