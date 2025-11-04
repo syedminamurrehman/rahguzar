@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 const BubbleAnimation = ({ bubbleCount }: { bubbleCount: number }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -7,84 +7,118 @@ const BubbleAnimation = ({ bubbleCount }: { bubbleCount: number }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     let frameId: number;
-    let bubbles: { x: number; y: number; radius: number; color: string; velocityX: number; velocityY: number }[] = [];
+    let bubbles: {
+      x: number;
+      y: number;
+      radius: number;
+      color: string;
+      velocityX: number;
+      velocityY: number;
+      opacity: number;
+      expansionRate: number;
+      life: number;
+    }[] = [];
 
-    // Set canvas dimensions
     const setCanvasDimensions = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
 
-    // Create bubbles
     const createBubbles = () => {
       bubbles = [];
       for (let i = 0; i < bubbleCount; i++) {
-        const radius = Math.random() * 30 + 10;
-        const x = Math.random() * (canvas.width - radius * 2) + radius;
-        const y = Math.random() * (canvas.height - radius * 2) + radius;
-        const color = `rgba(255, 255, 255, ${Math.random() * 0.5})`;
-        const velocityX = (Math.random() - 0.5) * 2;
-        const velocityY = (Math.random() - 0.5) * 2;
-
-        bubbles.push({ x, y, radius, color, velocityX, velocityY });
+        const radius = Math.random() * 15 + 5;
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const hue = Math.floor(Math.random() * 360);
+        const color = `hsl(${hue}, 100%, 70%)`;
+        const velocityX = (Math.random() - 0.5) * 8;
+        const velocityY = (Math.random() - 0.5) * 8;
+        const expansionRate = Math.random() * 0.4 + 0.2;
+        const life = Math.random() * 60 + 60; // frames
+        bubbles.push({
+          x,
+          y,
+          radius,
+          color,
+          velocityX,
+          velocityY,
+          opacity: 1,
+          expansionRate,
+          life,
+        });
       }
     };
 
-    // Draw bubble
-    const drawBubble = (bubble: { x: number; y: number; radius: number; color: string }) => {
+    const drawBubble = (bubble: typeof bubbles[number]) => {
+      const gradient = ctx.createRadialGradient(
+        bubble.x,
+        bubble.y,
+        0,
+        bubble.x,
+        bubble.y,
+        bubble.radius * 1.5
+      );
+      gradient.addColorStop(0, `${bubble.color}`);
+      gradient.addColorStop(1, "transparent");
+
       ctx.beginPath();
+      ctx.globalAlpha = bubble.opacity;
+      ctx.fillStyle = gradient;
       ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
-      ctx.fillStyle = bubble.color;
       ctx.fill();
+      ctx.globalAlpha = 1;
     };
 
-    // Update bubble position
-    const updateBubble = (bubble: { x: number; y: number; radius: number; color: string; velocityX: number; velocityY: number }) => {
+    const updateBubble = (bubble: typeof bubbles[number], i: number) => {
       bubble.x += bubble.velocityX;
       bubble.y += bubble.velocityY;
+      bubble.radius += bubble.expansionRate;
+      bubble.opacity -= 0.02;
+      bubble.life -= 1;
 
-      // Bounce off the walls
-      if (bubble.x + bubble.radius > canvas.width || bubble.x - bubble.radius < 0) {
-        bubble.velocityX = -bubble.velocityX;
-      }
-
-      if (bubble.y + bubble.radius > canvas.height || bubble.y - bubble.radius < 0) {
-        bubble.velocityY = -bubble.velocityY;
+      // Regenerate bubble if it fades out
+      if (bubble.opacity <= 0 || bubble.life <= 0) {
+        const hue = Math.floor(Math.random() * 360);
+        bubbles[i] = {
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 15 + 5,
+          color: `hsl(${hue}, 100%, 70%)`,
+          velocityX: (Math.random() - 0.5) * 8,
+          velocityY: (Math.random() - 0.5) * 8,
+          opacity: 1,
+          expansionRate: Math.random() * 0.4 + 0.2,
+          life: Math.random() * 60 + 60,
+        };
       }
     };
 
-    // Animation loop
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      bubbles.forEach(bubble => {
+      bubbles.forEach((bubble, i) => {
         drawBubble(bubble);
-        updateBubble(bubble);
+        updateBubble(bubble, i);
       });
-
       frameId = requestAnimationFrame(animate);
     };
 
-    // Initialize
     setCanvasDimensions();
     createBubbles();
     animate();
 
-    // Handle resize
     const handleResize = () => {
       setCanvasDimensions();
       createBubbles();
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
-    // Clean up
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(frameId);
     };
   }, [bubbleCount]);
@@ -93,11 +127,12 @@ const BubbleAnimation = ({ bubbleCount }: { bubbleCount: number }) => {
     <canvas
       ref={canvasRef}
       style={{
-        position: 'absolute',
+        position: "absolute",
         top: 0,
         left: 0,
         zIndex: 0,
-        pointerEvents: 'none',
+        pointerEvents: "none",
+        filter: "blur(1px)",
       }}
     />
   );
